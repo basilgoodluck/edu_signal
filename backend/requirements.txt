@@ -1,0 +1,8 @@
+fastapi[standard]==0.136.1
+uvicorn[standard]
+asyncpg
+pydantic>=2.0
+httpx
+celery[redis]
+redis
+python-dotenv

@@ -1,0 +1,30 @@
+:root {
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F5F4F0;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #5F5E5A;
+  --color-text-tertiary: #9E9C96;
+  --color-border-tertiary: #E8E6DF;
+  --color-border-secondary: #D1CFC6;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
