@@ -7,7 +7,7 @@ load_dotenv()
 
 AIMLAPI_KEY = os.environ["AIMLAPI_KEY"]
 AIMLAPI_URL = "https://api.aimlapi.com/v1/chat/completions"
-MODEL = "google/gemini-2.0-flash"
+MODEL = "google/gemini-3.5-flash"
 
 CLUSTER_HYPOTHESES = {
     "seasonal_migration": "The district is underperforming due to seasonal agricultural migration pulling children out of school during harvest periods.",
