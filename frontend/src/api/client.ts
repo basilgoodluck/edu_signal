@@ -1,4 +1,4 @@
-import type { District, DistrictDetail, Intervention, JobStatus } from "../types"
+import type { DistrictListItem, DistrictDetail, Intervention, JobStatus } from "../types"
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
 
@@ -19,7 +19,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 export const api = {
-  getDistricts: () => get<District[]>("/districts"),
+  getDistricts: () => get<DistrictListItem[]>("/districts"),
   getDistrict: (id: string) => get<DistrictDetail>(`/districts/${id}`),
   getClusterPeers: (clusterId: number) => get<District[]>(`/cluster/${clusterId}/peers`),
   getClusterInterventions: (clusterId: number) => get<Intervention[]>(`/cluster/${clusterId}/interventions`),

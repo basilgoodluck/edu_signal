@@ -2,7 +2,8 @@ import httpx
 import os
 
 BRIGHTDATA_API_KEY = os.environ["BRIGHTDATA_API_KEY"]
-BRIGHTDATA_UNLOCKER_URL = "https://api.brightdata.com/request"
+BRIGHTDATA_ZONE = os.environ.get("BRIGHTDATA_ZONE", "serp_api3")
+BRIGHTDATA_URL = "https://api.brightdata.com/request"
 
 STATE_PORTAL_URLS = {
     "Bihar": "https://bpsc.bih.nic.in/teacher-vacancy",
@@ -13,19 +14,22 @@ STATE_PORTAL_URLS = {
 }
 
 
-async def fetch_portal_page(url: str) -> str:
+async def fetch_page(url: str) -> str:
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
-            BRIGHTDATA_UNLOCKER_URL,
-            headers={"Authorization": f"Bearer {BRIGHTDATA_API_KEY}"},
-            json={
-                "zone": "web_unlocker",
-                "url": url,
-                "format": "raw",
+            BRIGHTDATA_URL,
+            headers={
+                "Authorization": f"Bearer {BRIGHTDATA_API_KEY}",
+                "Content-Type": "application/json",
             },
+            json={"zone": BRIGHTDATA_ZONE, "url": url, "format": "raw"},
         )
         response.raise_for_status()
-        return response.text
+        data = response.json()
+        # For non-SERP URLs the zone returns raw HTML in the response body
+        if isinstance(data, str):
+            return data
+        return data.get("body", str(data))
 
 
 async def scrape_vacancy_portal(state: str, district: str) -> dict:
@@ -33,11 +37,16 @@ async def scrape_vacancy_portal(state: str, district: str) -> dict:
     if not url:
         return {"error": f"No portal URL configured for state: {state}", "district": district}
 
-    raw_html = await fetch_portal_page(url)
+    try:
+        raw_html = await fetch_page(url)
+    except Exception as exc:
+        return {"error": str(exc), "district": district, "state": state}
 
     return {
         "district": district,
         "state": state,
         "portal_url": url,
         "raw_html": raw_html,
+        "source_type": "vacancy_portal",
+        "source_url": url,
     }

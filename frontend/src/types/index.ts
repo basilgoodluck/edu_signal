@@ -14,6 +14,11 @@ export interface District {
   lng?: number
 }
 
+export interface DistrictListItem extends District {
+  cluster_label?: string
+  confidence?: number
+}
+
 export interface ClusterAssignment {
   district_id: string
   cluster_id: number

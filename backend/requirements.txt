@@ -6,3 +6,9 @@ httpx
 celery[redis]
 redis
 python-dotenv
+scikit-learn
+hdbscan
+umap-learn
+shap
+numpy
+pandas

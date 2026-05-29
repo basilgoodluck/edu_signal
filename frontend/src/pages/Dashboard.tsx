@@ -3,7 +3,7 @@ import { useDistricts, useDistrict } from "../hooks/useDistrict"
 import IndiaMap from "../components/Map/IndiaMap"
 import MapLegend from "../components/Map/MapLegend"
 import DistrictPanel from "../components/District/DistrictPanel"
-import type { ClusterAssignment } from "../types"
+import type { ClusterAssignment, DistrictListItem } from "../types"
 
 export default function Dashboard() {
   const { districts, loading } = useDistricts()
@@ -11,8 +11,22 @@ export default function Dashboard() {
   const [filterCluster, setFilterCluster] = useState<string | null>(null)
   const { detail } = useDistrict(selectedId)
 
-  // build cluster map from districts — in real app this comes from API
-  const clusterMap: Record<string, ClusterAssignment> = {}
+  // Build clusterMap from districts list (cluster_label + confidence included by API)
+  const clusterMap: Record<string, ClusterAssignment> = Object.fromEntries(
+    (districts as DistrictListItem[])
+      .filter((d) => d.cluster_label)
+      .map((d) => [
+        d.id,
+        {
+          district_id: d.id,
+          cluster_id: 0,
+          cluster_label: d.cluster_label!,
+          confidence: d.confidence ?? 0,
+          shap_values: {},
+          assigned_at: "",
+        } as ClusterAssignment,
+      ])
+  )
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "var(--color-background-secondary)" }}>

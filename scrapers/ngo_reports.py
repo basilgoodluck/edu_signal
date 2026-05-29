@@ -2,7 +2,8 @@ import httpx
 import os
 
 BRIGHTDATA_API_KEY = os.environ["BRIGHTDATA_API_KEY"]
-BRIGHTDATA_UNLOCKER_URL = "https://api.brightdata.com/request"
+BRIGHTDATA_ZONE = os.environ.get("BRIGHTDATA_ZONE", "serp_api3")
+BRIGHTDATA_URL = "https://api.brightdata.com/request"
 
 NGO_SOURCES = [
     {"name": "Pratham", "url": "https://www.pratham.org/media/press-releases"},
@@ -22,29 +23,34 @@ STATE_EDU_DEPT_URLS = {
 async def fetch_page(url: str) -> str:
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
-            BRIGHTDATA_UNLOCKER_URL,
-            headers={"Authorization": f"Bearer {BRIGHTDATA_API_KEY}"},
-            json={
-                "zone": "web_unlocker",
-                "url": url,
-                "format": "raw",
+            BRIGHTDATA_URL,
+            headers={
+                "Authorization": f"Bearer {BRIGHTDATA_API_KEY}",
+                "Content-Type": "application/json",
             },
+            json={"zone": BRIGHTDATA_ZONE, "url": url, "format": "raw"},
         )
         response.raise_for_status()
-        return response.text
+        data = response.json()
+        if isinstance(data, str):
+            return data
+        return data.get("body", str(data))
 
 
 async def scrape_ngo_reports(district: str) -> list[dict]:
     results = []
     for source in NGO_SOURCES:
-        raw_html = await fetch_page(source["url"])
-        results.append({
-            "source_name": source["name"],
-            "source_url": source["url"],
-            "district": district,
-            "raw_html": raw_html,
-            "source_type": "ngo_report",
-        })
+        try:
+            raw_html = await fetch_page(source["url"])
+            results.append({
+                "source_name": source["name"],
+                "source_url": source["url"],
+                "district": district,
+                "raw_html": raw_html,
+                "source_type": "ngo_report",
+            })
+        except Exception as exc:
+            results.append({"error": str(exc), "source_name": source["name"]})
     return results
 
 
@@ -53,7 +59,11 @@ async def scrape_state_edu_dept(state: str, district: str) -> dict:
     if not url:
         return {"error": f"No education dept URL configured for state: {state}"}
 
-    raw_html = await fetch_page(url)
+    try:
+        raw_html = await fetch_page(url)
+    except Exception as exc:
+        return {"error": str(exc)}
+
     return {
         "source_name": f"{state} Education Department",
         "source_url": url,

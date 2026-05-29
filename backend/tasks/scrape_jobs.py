@@ -1,5 +1,16 @@
 import os
+import sys
 import asyncio
+
+from dotenv import load_dotenv
+load_dotenv()
+
+_tasks_dir = os.path.dirname(os.path.abspath(__file__))
+# Add backend/ so `from db.xxx import` resolves
+sys.path.insert(0, os.path.join(_tasks_dir, ".."))
+# Add repo root so `from scrapers.xxx import` resolves
+sys.path.insert(0, os.path.join(_tasks_dir, "../.."))
+
 from celery import Celery
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
@@ -9,15 +20,10 @@ celery_app = Celery("edusignal", broker=REDIS_URL, backend=REDIS_URL)
 
 @celery_app.task(bind=True)
 def run_scrape_job(self, district_id: str, district_name: str, state: str):
-    return asyncio.get_event_loop().run_until_complete(
-        _run_scrape(district_id, district_name, state)
-    )
+    return asyncio.run(_run_scrape(district_id, district_name, state))
 
 
 async def _run_scrape(district_id: str, district_name: str, state: str):
-    import sys
-    sys.path.append(os.path.join(os.path.dirname(__file__), "../../scrapers"))
-
     from scrapers.news_serp import scrape_all_signals
     from scrapers.vacancy_portal import scrape_vacancy_portal
     from scrapers.ngo_reports import scrape_ngo_reports, scrape_state_edu_dept
@@ -51,14 +57,27 @@ async def _run_scrape(district_id: str, district_name: str, state: str):
         )
         cluster_type = cluster_row["cluster_label"] if cluster_row else "seasonal_migration"
 
-        for item in all_raw:
-            if "error" in item:
-                continue
-            text = item.get("snippet") or item.get("raw_html", "")[:2000]
+        # Limit to 10 items to stay within Gemini free-tier RPM (~15/min)
+        candidates = [
+            item for item in all_raw
+            if "error" not in item
+            and (item.get("snippet") or item.get("description") or item.get("raw_html"))
+        ][:10]
+
+        for item in candidates:
+            # news_serp returns "snippet" (mapped from Bright Data's "description"); web scrapers return "raw_html"
+            title = item.get("title", "")
+            body = item.get("snippet") or item.get("description") or item.get("raw_html", "")[:2000]
+            text = f"{title}. {body}".strip(" .")
             if not text.strip():
                 continue
 
-            classified = await classify_evidence(text, cluster_type)
+            try:
+                classified = await classify_evidence(text, cluster_type)
+                # 4s gap keeps us under the 15 RPM free-tier limit
+                await asyncio.sleep(4)
+            except Exception:
+                continue
 
             await conn.execute(
                 """

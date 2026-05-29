@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
-import * as topojson from "topojson-client"
 import type { District, ClusterAssignment } from "../../types"
 
-const GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson/master/countries/india/india-districts.json"
+const GEO_URL = "/india-districts.json"
 
 export const CLUSTER_COLORS: Record<string, string> = {
   seasonal_migration: "#EF9F27",
@@ -65,8 +64,8 @@ export default function IndiaMap({ districts, clusterMap, selectedId, onSelect, 
       .on("zoom", (event) => g.attr("transform", event.transform))
     svg.call(zoom)
 
-    d3.json(GEO_URL).then((topo: any) => {
-      const geojson = topojson.feature(topo, topo.objects[Object.keys(topo.objects)[0]]) as any
+    d3.json(GEO_URL).then((data: any) => {
+      const geojson = data
 
       g.selectAll("path")
         .data(geojson.features)

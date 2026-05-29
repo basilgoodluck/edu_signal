@@ -2,7 +2,8 @@ import httpx
 import os
 
 BRIGHTDATA_API_KEY = os.environ["BRIGHTDATA_API_KEY"]
-BRIGHTDATA_UNLOCKER_URL = "https://api.brightdata.com/request"
+BRIGHTDATA_ZONE = os.environ.get("BRIGHTDATA_ZONE", "serp_api3")
+BRIGHTDATA_URL = "https://api.brightdata.com/request"
 
 FORUM_SOURCES = [
     {
@@ -27,16 +28,18 @@ def slugify(district: str) -> str:
 async def fetch_page(url: str) -> str:
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
-            BRIGHTDATA_UNLOCKER_URL,
-            headers={"Authorization": f"Bearer {BRIGHTDATA_API_KEY}"},
-            json={
-                "zone": "web_unlocker",
-                "url": url,
-                "format": "raw",
+            BRIGHTDATA_URL,
+            headers={
+                "Authorization": f"Bearer {BRIGHTDATA_API_KEY}",
+                "Content-Type": "application/json",
             },
+            json={"zone": BRIGHTDATA_ZONE, "url": url, "format": "raw"},
         )
         response.raise_for_status()
-        return response.text
+        data = response.json()
+        if isinstance(data, str):
+            return data
+        return data.get("body", str(data))
 
 
 async def scrape_forums(district: str) -> list[dict]:
@@ -45,14 +48,17 @@ async def scrape_forums(district: str) -> list[dict]:
 
     for source in FORUM_SOURCES:
         url = source["url_template"].format(district_slug=district_slug)
-        raw_html = await fetch_page(url)
-        results.append({
-            "source_name": source["name"],
-            "source_url": url,
-            "district": district,
-            "raw_html": raw_html,
-            "source_type": "forum",
-        })
+        try:
+            raw_html = await fetch_page(url)
+            results.append({
+                "source_name": source["name"],
+                "source_url": url,
+                "district": district,
+                "raw_html": raw_html,
+                "source_type": "forum",
+            })
+        except Exception as exc:
+            results.append({"error": str(exc), "source_name": source["name"]})
 
     return results
 
@@ -62,7 +68,11 @@ async def scrape_grievance_portal(state: str, district: str) -> dict:
     if not url:
         return {"error": f"No grievance portal configured for state: {state}"}
 
-    raw_html = await fetch_page(url)
+    try:
+        raw_html = await fetch_page(url)
+    except Exception as exc:
+        return {"error": str(exc)}
+
     return {
         "source_name": f"{state} Grievance Portal",
         "source_url": url,

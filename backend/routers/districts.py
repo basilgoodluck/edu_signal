@@ -1,15 +1,21 @@
 from fastapi import APIRouter, HTTPException
 from db.session import get_pool
-from models.schemas import District, DistrictDetail
+from models.schemas import District, DistrictListItem, DistrictDetail
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[District])
+@router.get("", response_model=list[DistrictListItem])
 async def list_districts():
     pool = await get_pool()
     async with pool.acquire() as conn:
-        rows = await conn.fetch("SELECT * FROM districts ORDER BY name")
+        rows = await conn.fetch("""
+            SELECT d.id, d.name, d.state, d.census_code, d.lat, d.lng,
+                   ca.cluster_label, ca.confidence
+            FROM districts d
+            LEFT JOIN cluster_assignments ca ON ca.district_id = d.id
+            ORDER BY d.name
+        """)
     return [dict(r) for r in rows]
 
 

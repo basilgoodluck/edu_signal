@@ -1,7 +1,12 @@
+import asyncio
 import httpx
 import os
 
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models"
+    "/gemini-3.1-flash-lite:generateContent"
+)
 
 CLUSTER_HYPOTHESES = {
     "seasonal_migration": "The district is underperforming due to seasonal agricultural migration pulling children out of school during harvest periods.",
@@ -21,22 +26,21 @@ Hypothesis: {hypothesis}
 
 Evidence: {evidence}
 
-Format your response exactly as:
+Respond ONLY in this format, nothing else:
 RAW: [exact quote or headline from the evidence]
 CLASSIFICATION: Supporting | Contradicting | Irrelevant
 REASON: [one sentence]"""
 
 
-def parse_classification(response_text: str) -> dict:
-    lines = response_text.strip().splitlines()
+def parse_classification(text: str) -> dict:
     result = {"raw": "", "classification": "Irrelevant", "reason": ""}
-    for line in lines:
+    for line in text.strip().splitlines():
         if line.startswith("RAW:"):
-            result["raw"] = line.replace("RAW:", "").strip()
+            result["raw"] = line.removeprefix("RAW:").strip()
         elif line.startswith("CLASSIFICATION:"):
-            result["classification"] = line.replace("CLASSIFICATION:", "").strip()
+            result["classification"] = line.removeprefix("CLASSIFICATION:").strip()
         elif line.startswith("REASON:"):
-            result["reason"] = line.replace("REASON:", "").strip()
+            result["reason"] = line.removeprefix("REASON:").strip()
     return result
 
 
@@ -45,23 +49,28 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
     prompt = CLASSIFICATION_PROMPT.format(hypothesis=hypothesis, evidence=evidence_text)
 
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-sonnet-4-20250514",
-                "max_tokens": 300,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
+        for attempt in range(5):
+            response = await client.post(
+                GEMINI_URL,
+                params={"key": GEMINI_API_KEY},
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"maxOutputTokens": 300, "temperature": 0.1},
+                },
+            )
+            if response.status_code == 429:
+                # cap individual backoff at 60s; caller also paces calls every 4s
+                wait = min(2 ** attempt * 5, 60)
+                await asyncio.sleep(wait)
+                continue
+            response.raise_for_status()
+            break
+        else:
+            response.raise_for_status()
 
-    raw_text = data["content"][0]["text"]
+    data = response.json()
+    raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
     parsed = parse_classification(raw_text)
     parsed["cluster_type"] = cluster_type
     parsed["hypothesis"] = hypothesis
