@@ -1,12 +1,13 @@
 import asyncio
 import httpx
 import os
+from dotenv import load_dotenv
 
-GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-GEMINI_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models"
-    "/gemini-3.1-flash-lite:generateContent"
-)
+load_dotenv()
+
+AIMLAPI_KEY = os.environ["AIMLAPI_KEY"]
+AIMLAPI_URL = "https://api.aimlapi.com/v1/chat/completions"
+MODEL = "google/gemini-3.5-flash"
 
 CLUSTER_HYPOTHESES = {
     "seasonal_migration": "The district is underperforming due to seasonal agricultural migration pulling children out of school during harvest periods.",
@@ -51,16 +52,19 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
         for attempt in range(5):
             response = await client.post(
-                GEMINI_URL,
-                params={"key": GEMINI_API_KEY},
-                headers={"Content-Type": "application/json"},
+                AIMLAPI_URL,
+                headers={
+                    "Authorization": f"Bearer {AIMLAPI_KEY}",
+                    "Content-Type": "application/json",
+                },
                 json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"maxOutputTokens": 300, "temperature": 0.1},
+                    "model": MODEL,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 300,
+                    "temperature": 0.1,
                 },
             )
             if response.status_code == 429:
-                # cap individual backoff at 60s; caller also paces calls every 4s
                 wait = min(2 ** attempt * 5, 60)
                 await asyncio.sleep(wait)
                 continue
@@ -70,7 +74,7 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
             response.raise_for_status()
 
     data = response.json()
-    raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+    raw_text = data["choices"][0]["message"]["content"]  # OpenAI-style response
     parsed = parse_classification(raw_text)
     parsed["cluster_type"] = cluster_type
     parsed["hypothesis"] = hypothesis
