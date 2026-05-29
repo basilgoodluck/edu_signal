@@ -1,11 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from models.schemas import EvidenceClassifyRequest
-from scrapers.classifier import classify_evidence
 
 router = APIRouter()
 
 
 @router.post("/classify")
 async def classify_evidence_endpoint(request: EvidenceClassifyRequest):
-    result = await classify_evidence(request.evidence_text, request.cluster_type)
+    from scrapers.classifier import classify_evidence
+
+    try:
+        result = await classify_evidence(request.evidence_text, request.cluster_type)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Classification failed: {exc}") from exc
     return result

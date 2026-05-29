@@ -53,7 +53,7 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-4-20250514",
+                "model": "claude-sonnet-4-6",
                 "max_tokens": 300,
                 "messages": [{"role": "user", "content": prompt}],
             },

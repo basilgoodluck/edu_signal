@@ -1,5 +1,13 @@
 import os
+import sys
 import asyncio
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# Add repo root so `from scrapers.xxx import` resolves
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+
 from celery import Celery
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
@@ -9,15 +17,10 @@ celery_app = Celery("edusignal", broker=REDIS_URL, backend=REDIS_URL)
 
 @celery_app.task(bind=True)
 def run_scrape_job(self, district_id: str, district_name: str, state: str):
-    return asyncio.get_event_loop().run_until_complete(
-        _run_scrape(district_id, district_name, state)
-    )
+    return asyncio.run(_run_scrape(district_id, district_name, state))
 
 
 async def _run_scrape(district_id: str, district_name: str, state: str):
-    import sys
-    sys.path.append(os.path.join(os.path.dirname(__file__), "../../scrapers"))
-
     from scrapers.news_serp import scrape_all_signals
     from scrapers.vacancy_portal import scrape_vacancy_portal
     from scrapers.ngo_reports import scrape_ngo_reports, scrape_state_edu_dept
@@ -58,7 +61,10 @@ async def _run_scrape(district_id: str, district_name: str, state: str):
             if not text.strip():
                 continue
 
-            classified = await classify_evidence(text, cluster_type)
+            try:
+                classified = await classify_evidence(text, cluster_type)
+            except Exception:
+                continue
 
             await conn.execute(
                 """
