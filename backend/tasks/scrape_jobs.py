@@ -5,8 +5,11 @@ import asyncio
 from dotenv import load_dotenv
 load_dotenv()
 
+_tasks_dir = os.path.dirname(os.path.abspath(__file__))
+# Add backend/ so `from db.xxx import` resolves
+sys.path.insert(0, os.path.join(_tasks_dir, ".."))
 # Add repo root so `from scrapers.xxx import` resolves
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, os.path.join(_tasks_dir, "../.."))
 
 from celery import Celery
 
@@ -54,15 +57,25 @@ async def _run_scrape(district_id: str, district_name: str, state: str):
         )
         cluster_type = cluster_row["cluster_label"] if cluster_row else "seasonal_migration"
 
-        for item in all_raw:
-            if "error" in item:
-                continue
-            text = item.get("snippet") or item.get("raw_html", "")[:2000]
+        # Limit to 10 items to stay within Gemini free-tier RPM (~15/min)
+        candidates = [
+            item for item in all_raw
+            if "error" not in item
+            and (item.get("snippet") or item.get("description") or item.get("raw_html"))
+        ][:10]
+
+        for item in candidates:
+            # news_serp returns "snippet" (mapped from Bright Data's "description"); web scrapers return "raw_html"
+            title = item.get("title", "")
+            body = item.get("snippet") or item.get("description") or item.get("raw_html", "")[:2000]
+            text = f"{title}. {body}".strip(" .")
             if not text.strip():
                 continue
 
             try:
                 classified = await classify_evidence(text, cluster_type)
+                # 4s gap keeps us under the 15 RPM free-tier limit
+                await asyncio.sleep(4)
             except Exception:
                 continue
 
