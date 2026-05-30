@@ -35,5 +35,6 @@ async def get_pool() -> asyncpg.Pool:
 async def init_db():
     pool = await get_pool()
     async with pool.acquire() as conn:
-        with open("db/schema.sql") as f:
+        schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
+        with open(schema_path) as f:
             await conn.execute(f.read())

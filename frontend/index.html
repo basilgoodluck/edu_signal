@@ -1,12 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EduSignal</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EduSignal â€” District Root-Cause Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  /* neutrals â€” dark technical palette */
+  --bg: oklch(0.16 0.012 235);
+  --bg-sunken: oklch(0.13 0.014 235);
+  --surface: oklch(0.21 0.012 235);
+  --surface-2: oklch(0.24 0.012 235);
+  --border: oklch(0.28 0.012 235);
+  --border-strong: oklch(0.34 0.014 235);
+  --ink: oklch(0.92 0.006 235);
+  --ink-2: oklch(0.74 0.01 235);
+  --ink-3: oklch(0.58 0.01 235);
+  --ink-faint: oklch(0.46 0.01 235);
+
+  /* brand */
+  --brand: oklch(0.62 0.19 268);
+  --brand-strong: oklch(0.56 0.2 268);
+  --brand-tint: oklch(0.24 0.04 268);
+
+  /* cluster categorical palette (distinct hues, matched chroma/lightness) */
+  --c-migration: oklch(0.72 0.15 64);
+  --c-migration-tint: oklch(0.25 0.04 64);
+  --c-language: oklch(0.64 0.16 300);
+  --c-language-tint: oklch(0.25 0.035 300);
+  --c-teacher: oklch(0.65 0.18 22);
+  --c-teacher-tint: oklch(0.25 0.04 22);
+  --c-infra: oklch(0.68 0.14 200);
+  --c-infra-tint: oklch(0.25 0.035 200);
+  --c-pedagogy: oklch(0.68 0.13 165);
+  --c-pedagogy-tint: oklch(0.25 0.035 165);
+  --c-noise: oklch(0.55 0.012 235);
+  --c-noise-tint: oklch(0.22 0.006 235);
+
+  /* classification */
+  --ok: oklch(0.65 0.14 150);
+  --ok-tint: oklch(0.25 0.035 150);
+  --bad: oklch(0.65 0.18 22);
+  --bad-tint: oklch(0.25 0.04 22);
+  --neutral: oklch(0.55 0.01 235);
+  --neutral-tint: oklch(0.22 0.005 235);
+
+  --shadow-sm: 0 1px 2px oklch(0.05 0.01 235 / 0.4), 0 1px 3px oklch(0.05 0.01 235 / 0.3);
+  --shadow-md: 0 2px 6px oklch(0.05 0.01 235 / 0.4), 0 8px 24px oklch(0.05 0.01 235 / 0.5);
+  --shadow-lg: 0 8px 28px oklch(0.05 0.01 235 / 0.5), 0 24px 60px oklch(0.05 0.01 235 / 0.6);
+
+  --r-sm: 6px;
+  --r: 9px;
+  --r-lg: 14px;
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --sidebar-w: 244px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-size: 14px;
+  line-height: 1.5;
+}
+#root { height: 100vh; }
+::selection { background: var(--brand-tint); color: var(--ink); }
+
+/* soft cyan wash behind scrolling content */
+.app-canvas {
+  background:
+    radial-gradient(1100px 460px at 18% -8%, color-mix(in oklch, var(--c-infra), transparent 70%), transparent 70%),
+    radial-gradient(900px 420px at 100% 0%, color-mix(in oklch, var(--c-infra), transparent 75%), transparent 65%);
+}
+
+/* scrollbars */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; border: 3px solid var(--bg); }
+*::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+.mono { font-family: var(--mono); }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* utility animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes growBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.fade-up { animation: fadeUp 0.34s cubic-bezier(0.2,0.7,0.2,1) both; }
+.fade-in { animation: fadeIn 0.3s ease both; }
+
+/* focus */
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="module" src="/src/main.jsx"></script>
+</body>
 </html>
+
