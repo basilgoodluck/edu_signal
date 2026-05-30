@@ -123,7 +123,13 @@ def map_features(features: dict[str, Any] | None) -> dict[str, Any]:
     return mapped
 
 
-def map_shap(shap_values: dict[str, Any] | None) -> list[dict[str, Any]]:
+def map_shap(shap_values: Any) -> list[dict[str, Any]]:
+    import json as _json
+    if isinstance(shap_values, str):
+        try:
+            shap_values = _json.loads(shap_values)
+        except Exception:
+            shap_values = {}
     rows = []
     for raw_key, value in (shap_values or {}).items():
         rows.append({
@@ -143,7 +149,7 @@ def map_cluster(row: Any) -> dict[str, Any]:
         "color": data.get("color") or "#64748b",
         "tint": data.get("tint") or "#f8fafc",
         "blurb": data.get("blurb") or "",
-        "window": data.get("window") or "",
+        "window": data.get("intervention_window") or "",
         "signature": data.get("signature") or [],
     }
 
@@ -223,6 +229,7 @@ def map_peer(row: Any) -> dict[str, Any]:
         "id": district["id"],
         "name": district["name"],
         "state": district["state"],
+        "stateCode": district["stateCode"],
         "cluster": district["cluster"],
         "reading3": district["reading3"],
     }

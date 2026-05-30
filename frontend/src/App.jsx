@@ -13,6 +13,7 @@ import DistrictDetail from "./views/DistrictView.jsx";
 import EvidenceView from "./views/EvidenceView.jsx";
 import ClustersView from "./views/ClustersView.jsx";
 import { AlertsView, PeersView, TrackerView } from "./views/WorkflowView.jsx";
+import AIPanel from "./views/AIView.jsx";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: "grid" },
@@ -190,6 +191,7 @@ function App() {
   const route = useMemo(() => routeFromPath(location.pathname), [location.pathname]);
   const [scanTarget, setScanTarget] = useState(null);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem(config.auth.tokenKey)); } catch { return null; }
   });
@@ -217,6 +219,7 @@ function App() {
   const goTo = (view) => { setScanTarget(null); navigate(PATH_BY_VIEW[view] || "/"); };
   const selectDistrict = (id) => { setScanTarget(null); navigate(`/district/${id}`); };
   const runScan = (id) => { setScanTarget(id); navigate("/evidence"); };
+  const openAI = (districtId) => { if (districtId) selectDistrict(districtId); setAiOpen(true); };
   const handleKeyDown = (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setCmdOpen((o) => !o); }
     if (e.key === "Escape") setCmdOpen(false);
@@ -238,10 +241,10 @@ function App() {
         <Topbar route={route} districtName={districtName} pipeline={summary?.pipeline} />
         <div ref={scrollRef} className="app-canvas" style={{ flex: 1, overflowY: "auto" }}>
           <Routes>
-            <Route path="/" element={<Overview onSelectDistrict={selectDistrict} goTo={goTo} year="2023" />} />
+            <Route path="/" element={<Overview onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={openAI} year="2023" />} />
             <Route path="/lab" element={<SignalLab onSelectDistrict={selectDistrict} />} />
             <Route path="/pipeline" element={<PipelineView />} />
-            <Route path="/district/:id" element={<DistrictDetail id={route.id} onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} />} />
+            <Route path="/district/:id" element={<DistrictDetail id={route.id} onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={() => setAiOpen(true)} />} />
             <Route path="/evidence" element={<EvidenceView scanTarget={scanTarget} onSelectDistrict={selectDistrict} goTo={goTo} />} />
             <Route path="/clusters" element={<ClustersView onSelectDistrict={selectDistrict} goTo={goTo} />} />
             <Route path="/peers" element={<PeersView anchorId={route.id} onSelectDistrict={selectDistrict} />} />
@@ -251,6 +254,32 @@ function App() {
           </Routes>
         </div>
       </main>
+
+      {/* AI floating button */}
+      {!aiOpen && (
+        <button onClick={() => setAiOpen(true)} style={{
+          position: "fixed", bottom: 28, right: 28, zIndex: 200,
+          width: 52, height: 52, borderRadius: 99,
+          background: "linear-gradient(135deg, var(--brand), var(--c-infra))",
+          color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.35)", transition: "transform 0.15s",
+        }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+          title="AI Analyst">
+          <Icon name="spark" size={22} stroke={2} />
+        </button>
+      )}
+
+      {/* AI slide-in panel */}
+      {aiOpen && (
+        <AIPanel
+          currentDistrict={route.view === "district" ? route.id : null}
+          onSelectDistrict={selectDistrict}
+          onClose={() => setAiOpen(false)}
+        />
+      )}
+
       <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} onSelectDistrict={selectDistrict} onNav={goTo} districts={bootstrap.districts || []} />
     </div>
   );

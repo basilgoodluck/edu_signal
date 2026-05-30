@@ -94,16 +94,22 @@ function EvidenceView({ scanTarget, onSelectDistrict }) {
 
   useEffect(() => { if (scanTarget) { setTarget(scanTarget); setScanning(true); } }, [scanTarget]);
   useEffect(() => {
-    Promise.all([getDistrictsMap(), getEvidence({ limit: 50 }), getEvidenceSummary()])
-      .then(([mapResponse, evidenceResponse, summaryResponse]) => {
+    Promise.all([getDistrictsMap(), getEvidenceSummary()])
+      .then(([mapResponse, summaryResponse]) => {
         const loadedDistricts = mapResponse.districts || [];
         setDistricts(loadedDistricts);
         setTarget((current) => current || loadedDistricts[0]?.id || "");
-        setFeed(evidenceResponse.items || []);
         setSummary(summaryResponse);
       })
       .catch((err) => setError(err.message || "Failed to load evidence"));
   }, []);
+
+  useEffect(() => {
+    if (!target) return;
+    getEvidence({ districtId: target, limit: 50 })
+      .then((r) => setFeed(r.items || []))
+      .catch(() => setFeed([]));
+  }, [target]);
 
   const filtered = useMemo(() => feed.filter((e) => (!clsFilter || e.classification === clsFilter) && (!srcFilter || e.sourceType === srcFilter)), [feed, clsFilter, srcFilter]);
   const clsCounts = summary.classificationCounts || {};

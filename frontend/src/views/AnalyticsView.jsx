@@ -16,7 +16,7 @@ function StatChip({ label, value, accent }) {
 }
 
 function SignalLab({ onSelectDistrict }) {
-  const [radarDistrict, setRadarDistrict] = useState("shravasti");
+  const [radarDistrict, setRadarDistrict] = useState("");
   const [districts, setDistricts] = useState([]);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
