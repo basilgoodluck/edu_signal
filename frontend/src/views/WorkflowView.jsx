@@ -5,9 +5,11 @@ import { subscribeAlerts, subscribeTracker } from "../api/streams.js";
 import { Card, ClusterBadge, ClusterDot, Icon, SectionLabel, Stat, signed } from "../components/UI.jsx";
 import { PeerNetwork, setChartData } from "../components/Charts.jsx";
 import { PageHeader } from "./OverviewView.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal - Peers & Interventions, Tracker, Alerts */
 
 function PeersView({ anchorId, onSelectDistrict }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
   const [anchor, setAnchor] = useState(anchorId || "");
   const [districts, setDistricts] = useState([]);
   const [comparison, setComparison] = useState(null);
@@ -37,7 +39,7 @@ function PeersView({ anchorId, onSelectDistrict }) {
   const interventions = comparison.interventions || [];
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Peers & Interventions"
         sub="Same root cause, different outcomes. Borrow what worked next door."
@@ -81,7 +83,7 @@ function PeersView({ anchorId, onSelectDistrict }) {
       </Card>
 
       <SectionLabel>Proven interventions</SectionLabel>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? "min(100%, 260px)" : "300px"}, 1fr))`, gap: 14 }}>
         {interventions.map((iv) => (
           <Card key={iv.id || iv.type} hover>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
@@ -97,6 +99,7 @@ function PeersView({ anchorId, onSelectDistrict }) {
 }
 
 function TrackerView({ onSelectDistrict }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -126,9 +129,9 @@ function TrackerView({ onSelectDistrict }) {
   const items = data.items || [];
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1100, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1100, margin: "0 auto" }}>
       <PageHeader title="Intervention Tracker" sub="Interventions you've launched, and whether outcomes are moving." />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden", marginBottom: 22 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden", marginBottom: 22 }}>
         <div style={{ background: "var(--surface)", padding: "16px 18px" }}><Stat label="Live interventions" value={summary.active || 0} sub="being tracked" icon="flask" /></div>
         <div style={{ background: "var(--surface)", padding: "16px 18px" }}><Stat label="Cumulative lift" value={signed(summary.cumulativeLift || 0, 0) + "pp"} sub="reading, since baseline" accent="var(--ok)" icon="trend" /></div>
         <div style={{ background: "var(--surface)", padding: "16px 18px" }}><Stat label="Districts covered" value={summary.districtsCovered || 0} sub="under active programs" icon="pin" /></div>
@@ -154,6 +157,7 @@ function TrackerView({ onSelectDistrict }) {
 }
 
 function AlertsView({ onSelectDistrict }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
   const [alerts, setAlerts] = useState(null);
   const [error, setError] = useState(null);
   const levelMeta = {
@@ -177,15 +181,15 @@ function AlertsView({ onSelectDistrict }) {
   if (!alerts) return <div style={{ padding: 30 }} className="mono">Loading alerts...</div>;
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 900, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 900, margin: "0 auto" }}>
       <PageHeader title="Alerts" sub="Time-sensitive signals - act before the window closes, not after." />
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {alerts.map((a) => {
           const lm = levelMeta[a.level] || levelMeta.low;
           return (
-            <Card key={a.id} hover onClick={() => onSelectDistrict(a.district)} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+            <Card key={a.id} hover onClick={() => onSelectDistrict(a.district)} style={{ display: "flex", gap: 16, alignItems: "flex-start", minWidth: 0 }}>
               <div style={{ width: 4, alignSelf: "stretch", borderRadius: 99, background: lm.c, flex: "none" }} />
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
                   <span style={{ padding: "3px 9px", borderRadius: 99, fontSize: 10, fontWeight: 600, fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.05em", background: lm.t, color: lm.c }}>{lm.label}</span>
                   <ClusterBadge cluster={a.cluster} size="sm" />

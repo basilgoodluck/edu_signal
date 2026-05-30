@@ -3,6 +3,7 @@ import { getPipelineOverview } from "../api/analytics.js";
 import { subscribePipeline } from "../api/streams.js";
 import { Icon, SectionLabel, SOURCE_META } from "../components/UI.jsx";
 import { PageHeader } from "./OverviewView.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal - Data Pipeline & observability */
 
 function freshLabel(min) {
@@ -13,6 +14,8 @@ function freshLabel(min) {
 }
 
 function PipelineView() {
+  const isMobile = useMediaQuery("(max-width: 760px)");
+  const isNarrow = useMediaQuery("(max-width: 980px)");
   const [overview, setOverview] = useState(null);
   const [error, setError] = useState(null);
 
@@ -37,14 +40,14 @@ function PipelineView() {
   const path = spark.map((point, index) => (index ? "L" : "M") + point[0].toFixed(1) + " " + point[1].toFixed(1)).join(" ");
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Data Pipeline"
         sub="Six messy public sources -> one trustworthy feature store. Fused on district, point-in-time correct, retrained nightly."
         actions={<span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--ink-2)", padding: "8px 13px", border: "1px solid var(--border)", borderRadius: 99 }} className="mono"><span style={{ width: 7, height: 7, borderRadius: 99, background: "var(--ok)", animation: "pulse 2s infinite" }} />{(overview.status || "running").toUpperCase()}</span>}
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.max(obs.length, 1)}, 1fr)`, gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden", marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isNarrow ? "repeat(2, minmax(0, 1fr))" : `repeat(${Math.max(obs.length, 1)}, minmax(0, 1fr))`, gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden", marginBottom: 20 }}>
         {obs.map((o) => (
           <div key={o.label} style={{ background: "var(--surface)", padding: "14px 16px" }}>
             <div className="tnum" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.025em", color: "var(--ink)" }}>{o.value}</div>
@@ -56,7 +59,7 @@ function PipelineView() {
 
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", padding: "20px 22px", marginBottom: 20 }}>
         <SectionLabel right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>Airflow DAG - {stages.length} stages</span>}>End-to-end lineage</SectionLabel>
-        <div style={{ display: "grid", gridTemplateColumns: `190px repeat(${Math.max(stages.length, 1)}, minmax(140px, 1fr))`, gap: 10, overflowX: "auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: `190px repeat(${Math.max(stages.length, 1)}, minmax(140px, 1fr))`, gap: 10, overflowX: "auto", paddingBottom: 6 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             <div className="mono" style={{ fontSize: 9.5, letterSpacing: "0.08em", color: "var(--ink-faint)", textTransform: "uppercase", marginBottom: 3 }}>Sources - {sources.length}</div>
             {sources.map((s) => (
@@ -89,7 +92,7 @@ function PipelineView() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 18 }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", padding: "18px 20px" }}>
           <SectionLabel right={<span className="mono tnum" style={{ fontSize: 11, color: "var(--brand)", fontWeight: 600 }}>{maxThroughput} docs/min peak</span>}>Live ingestion throughput</SectionLabel>
           <svg viewBox="0 0 560 90" width="100%" height="90" preserveAspectRatio="none" style={{ display: "block" }}>
@@ -105,7 +108,7 @@ function PipelineView() {
             {sources.map((s) => (
               <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ width: 7, height: 7, borderRadius: 99, background: s.status === "healthy" ? "var(--ok)" : "var(--ink-faint)", flex: "none" }} />
-                <span style={{ fontSize: 12, flex: 1, fontWeight: 500 }}>{s.label}</span>
+                <span style={{ fontSize: 12, flex: 1, minWidth: 0, fontWeight: 500 }}>{s.label}</span>
                 <span className="mono tnum" style={{ fontSize: 11, color: "var(--ink-3)" }}>{s.rate ? s.rate + "/h" : "batch"}</span>
                 <span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", width: 34, textAlign: "right" }}>{freshLabel(s.freshMin)}</span>
               </div>

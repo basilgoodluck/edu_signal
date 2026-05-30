@@ -171,8 +171,8 @@ function Card({ children, style, pad = 18, hover, onClick, className }) {
 
 function SectionLabel({ children, right, style }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, ...style }}>
-      <div className="mono" style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-3)" }}>{children}</div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 12, ...style }}>
+      <div className="mono" style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-3)", minWidth: 0 }}>{children}</div>
       {right}
     </div>
   );
@@ -190,7 +190,7 @@ function Stat({ label, value, sub, accent, delta, icon }) {
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
         <div className="mono" style={{ fontSize: 10.5, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--ink-3)" }}>{label}</div>
-        <div className="tnum" style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.025em", color: accent || "var(--ink)", lineHeight: 1.1 }}>{value}</div>
+        <div className="tnum" style={{ fontSize: 26, fontWeight: 600, letterSpacing: "-0.025em", color: accent || "var(--ink)", lineHeight: 1.1, overflowWrap: "anywhere" }}>{value}</div>
         {(sub || delta != null) && (
           <div style={{ fontSize: 12, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 6 }}>
             {delta != null && <span className="tnum" style={{ color: delta < 0 ? "var(--bad)" : "var(--ok)", fontWeight: 600 }}>{signed(delta)}</span>}
@@ -233,8 +233,8 @@ function ShapWaterfall({ shap, cluster }) {
         const w = (Math.abs(s.contribution) / maxAbs) * 100;
         const pos = s.contribution >= 0;
         return (
-          <div key={s.feature} style={{ display: "grid", gridTemplateColumns: "150px 1fr 52px", alignItems: "center", gap: 12 }}>
-            <div style={{ fontSize: 12.5, color: "var(--ink-2)", textAlign: "right", fontWeight: 500 }}>{FEATURE_LABELS[s.feature] || s.feature}</div>
+          <div key={s.feature} style={{ display: "grid", gridTemplateColumns: "minmax(86px, 150px) minmax(0, 1fr) 52px", alignItems: "center", gap: 12 }}>
+            <div style={{ fontSize: 12.5, color: "var(--ink-2)", textAlign: "right", fontWeight: 500, overflowWrap: "anywhere" }}>{FEATURE_LABELS[s.feature] || s.feature}</div>
             <div style={{ position: "relative", height: 22, display: "flex", justifyContent: "center", background: "linear-gradient(90deg, transparent 49.7%, var(--border) 49.7%, var(--border) 50.3%, transparent 50.3%)" }}>
               <div style={{ position: "absolute", top: 3, height: 16, borderRadius: 4,
                 width: (w / 2) + "%",

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import "./LandingPage.css";
 
 const stats = [
@@ -82,8 +83,45 @@ function ArrowIcon() {
 }
 
 function LandingPage() {
+  useEffect(() => {
+    const page = document.querySelector(".landing-page");
+    const animated = document.querySelectorAll(".landing-reveal");
+    const progress = document.querySelector(".landing-scroll-progress");
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("is-visible");
+      });
+    }, { threshold: 0.16, rootMargin: "0px 0px -10% 0px" });
+
+    animated.forEach((node) => observer.observe(node));
+
+    const updateScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? window.scrollY / max : 0;
+      progress?.style.setProperty("--scroll-progress", pct.toFixed(4));
+      page?.style.setProperty("--scroll-y", window.scrollY.toFixed(0));
+    };
+
+    const updatePointer = (event) => {
+      page?.style.setProperty("--pointer-x", `${event.clientX}px`);
+      page?.style.setProperty("--pointer-y", `${event.clientY}px`);
+    };
+
+    updateScroll();
+    window.addEventListener("scroll", updateScroll, { passive: true });
+    window.addEventListener("pointermove", updatePointer, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", updateScroll);
+      window.removeEventListener("pointermove", updatePointer);
+    };
+  }, []);
+
   return (
     <div className="landing-page">
+      <div className="landing-scroll-progress" aria-hidden="true" />
       <nav className="landing-nav">
         <div className="landing-shell landing-nav-inner">
           <Logo />
@@ -97,7 +135,7 @@ function LandingPage() {
         </div>
       </nav>
 
-      <header className="landing-hero" id="top">
+      <header className="landing-hero landing-reveal" id="top">
         <div className="landing-shell landing-hero-inner">
           <div className="landing-eyebrow"><span className="landing-live-dot" />ASER 2023 - UDISE+ 2023-24 - ISRO Bhuvan - Live</div>
           <h1>Stop guessing <em>why</em> a district's learning outcomes are falling.</h1>
@@ -117,8 +155,8 @@ function LandingPage() {
 
       <div className="landing-stat-band">
         <div className="landing-shell landing-stat-grid">
-          {stats.map(([num, unit, label]) => (
-            <div className="landing-stat" key={label}>
+          {stats.map(([num, unit, label], index) => (
+            <div className="landing-stat landing-reveal" style={{ transitionDelay: `${index * 80}ms` }} key={label}>
               <div className="landing-stat-num">{num}{unit && <span>{unit}</span>}</div>
               <div className="landing-stat-label">{label}</div>
             </div>
@@ -126,18 +164,18 @@ function LandingPage() {
         </div>
       </div>
 
-      <section className="landing-block" id="problem">
+      <section className="landing-block landing-reveal" id="problem">
         <div className="landing-shell">
           <div className="landing-section-eyebrow">The problem</div>
           <h2>Every district reports the same red number. Almost none can say <em>why</em>.</h2>
           <div className="landing-problem-grid">
-            <div className="landing-copy">
+            <div className="landing-copy landing-reveal">
               <h3>Block-level dashboards stop at "outcome dropped".</h3>
               <p>An education officer in Shravasti sees Grade-3 reading at 19% and falling 4 points year-on-year. The dashboard turns the cell red. Then what?</p>
               <p>The real cause could be sugarcane migration, a Hindi/Surjapuri language mismatch, a 12% teacher vacancy rate, a flooded Ghaghara catchment, or bad pedagogy in well-resourced schools. Each demands a different intervention.</p>
               <div className="landing-pull">EduSignal sits between "outcomes are bad" and "here is the intervention that has worked in statistically similar districts."</div>
             </div>
-            <div className="landing-card">
+            <div className="landing-card landing-reveal">
               <div className="landing-axis">Shravasti - Grade-3 reading proficiency - ASER</div>
               <div className="landing-bars">
                 {yearlyReading.map(([year, width, value], index) => (
@@ -154,14 +192,14 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-block" id="pipeline">
+      <section className="landing-block landing-reveal" id="pipeline">
         <div className="landing-shell">
           <div className="landing-section-eyebrow">How it works</div>
           <h2>Ingest the noise, cluster the signal, attribute the cause.</h2>
           <p className="landing-section-sub">Three stages, each inspectable in the app. Every score traces back to the rows that produced it.</p>
           <div className="landing-pipeline">
             {steps.map((step, index) => (
-              <div className={`landing-step ${step.accent ? `landing-step-${step.accent}` : ""}`} key={step.label}>
+              <div className={`landing-step landing-reveal ${step.accent ? `landing-step-${step.accent}` : ""}`} style={{ transitionDelay: `${index * 110}ms` }} key={step.label}>
                 <div className="landing-step-icon">{index + 1}</div>
                 <div className="landing-step-num">{step.label}</div>
                 <h3>{step.title}</h3>
@@ -173,14 +211,14 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-block" id="clusters">
+      <section className="landing-block landing-reveal" id="clusters">
         <div className="landing-shell">
           <div className="landing-section-eyebrow">Five causes, not one</div>
           <h2>Every red district is one of these patterns. The fix depends on which.</h2>
           <p className="landing-section-sub">A district stuck on language does not need more teachers; a teacher-shortage district does not need bilingual primers.</p>
           <div className="landing-cluster-grid">
-            {clusters.map(([key, name, window, body, count]) => (
-              <div className={`landing-cluster-card landing-cluster-${key}`} key={key}>
+            {clusters.map(([key, name, window, body, count], index) => (
+              <div className={`landing-cluster-card landing-reveal landing-cluster-${key}`} style={{ transitionDelay: `${index * 70}ms` }} key={key}>
                 <div className="landing-cluster-head"><span /><b>{name}</b></div>
                 <div className="landing-cluster-window">{window}</div>
                 <p>{body}</p>
@@ -191,7 +229,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-block" id="evidence">
+      <section className="landing-block landing-reveal" id="evidence">
         <div className="landing-shell">
           <div className="landing-section-eyebrow">Evidence engine</div>
           <h2>Every classification ships with the rows that justify it.</h2>
@@ -203,8 +241,8 @@ function LandingPage() {
               <p>Confidence <b>0.91</b>, driven by NDVI seasonal variance, local news migration signal, and a Sep-Nov reading-score dip.</p>
             </div>
             <div className="landing-evidence-list">
-              {evidence.map(([type, label, body, source, weight]) => (
-                <div className="landing-ev-row" key={body}>
+              {evidence.map(([type, label, body, source, weight], index) => (
+                <div className="landing-ev-row landing-reveal" style={{ transitionDelay: `${index * 80}ms` }} key={body}>
                   <span className={`landing-ev-tag landing-ev-${type}`}>{label}</span>
                   <p>{body}<small>{source}</small></p>
                   <b>{weight}</b>
@@ -215,7 +253,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-cta">
+      <section className="landing-cta landing-reveal">
         <div className="landing-shell">
           <h2>734 districts. One dashboard. The right answer for each.</h2>
           <p>Open EduSignal and start with the live overview, or jump straight to a district you care about via command search.</p>

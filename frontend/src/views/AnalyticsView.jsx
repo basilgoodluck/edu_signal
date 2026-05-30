@@ -4,6 +4,7 @@ import { getDistrictsMap } from "../api/overview.js";
 import { ClusterDot, CLUSTER_ORDER, clusterMeta } from "../components/UI.jsx";
 import { ChartFrame, ClusterEmbedding, ShapBeeswarm, CorrHeatmap, ScoreHistogram, RadarChart, CauseStream, setChartData } from "../components/Charts.jsx";
 import { PageHeader } from "./OverviewView.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal â€” Signal Lab: the analytics showcase page */
 
 function StatChip({ label, value, accent }) {
@@ -16,6 +17,8 @@ function StatChip({ label, value, accent }) {
 }
 
 function SignalLab({ onSelectDistrict }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
+  const isNarrow = useMediaQuery("(max-width: 980px)");
   const [radarDistrict, setRadarDistrict] = useState("");
   const [districts, setDistricts] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -42,12 +45,12 @@ function SignalLab({ onSelectDistrict }) {
   const noiseN = summary.noiseDistricts ?? (total - clustered);
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Signal Lab"
         sub="The model's working memory â€” embeddings, feature attributions and correlations behind every cluster assignment."
         actions={
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <StatChip label="Silhouette" value={silhouette} accent="var(--ok)" />
             <StatChip label="Clustered" value={clustered + "/" + total} />
             <StatChip label="Noise" value={noiseN} accent="var(--ink-3)" />
@@ -56,7 +59,7 @@ function SignalLab({ onSelectDistrict }) {
       />
 
       {/* row 1: embedding (big) + beeswarm */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
         <ChartFrame title="District embedding" caption="UMAP projection Â· HDBSCAN clusters Â· marker size âˆ severity"
           right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", padding: "3px 8px", border: "1px solid var(--border)", borderRadius: 99 }}>2D Â· cosine</span>}>
           <ClusterEmbedding onSelect={onSelectDistrict} height={440} />
@@ -67,7 +70,7 @@ function SignalLab({ onSelectDistrict }) {
       </div>
 
       {/* row 2: streamgraph + histogram */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
         <ChartFrame title="Cause prevalence over time" caption="districts flagged per cause Â· 2018â€“2023 Â· stream-stacked">
           <CauseStream height={260} />
         </ChartFrame>
@@ -78,7 +81,7 @@ function SignalLab({ onSelectDistrict }) {
       </div>
 
       {/* row 3: correlation + radar + trend */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1fr) minmax(0, 1fr)", gap: 18 }}>
         <ChartFrame title="Feature correlation" caption="Pearson r across all districts Â· blue âˆ’ / red +"
           right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>n = {total}</span>}>
           <CorrHeatmap height={360} />
