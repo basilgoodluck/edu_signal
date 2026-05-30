@@ -102,7 +102,20 @@ function TrackerView({ onSelectDistrict }) {
   useEffect(() => {
     getTracker().then(setData).catch((err) => setError(err.message || "Failed to load tracker"));
     return subscribeTracker((event) => {
-      if (event.item) setData((current) => ({ ...(current || {}), items: [event.item, ...((current?.items || []).filter((item) => item.id !== event.item.id))] }));
+      if (event.item) {
+        setData((current) => {
+          const items = [event.item, ...((current?.items || []).filter((item) => item.id !== event.item.id))];
+          return {
+            ...(current || {}),
+            items,
+            summary: {
+              active: items.filter((item) => item.status === "active").length,
+              cumulativeLift: items.reduce((sum, item) => sum + ((item.latest || 0) - (item.baseline || 0)), 0),
+              districtsCovered: new Set(items.map((item) => item.district)).size,
+            },
+          };
+        });
+      }
     });
   }, []);
 
@@ -151,7 +164,12 @@ function AlertsView({ onSelectDistrict }) {
   useEffect(() => {
     getAlerts().then((response) => setAlerts(response.items || [])).catch((err) => setError(err.message || "Failed to load alerts"));
     return subscribeAlerts((event) => {
-      if (event.alert) setAlerts((current) => [event.alert, ...((current || []).filter((item) => item.id !== event.alert.id))]);
+      if (event.alert) {
+        setAlerts((current) => {
+          const remaining = (current || []).filter((item) => item.id !== event.alert.id);
+          return event.alert.status && event.alert.status !== "open" ? remaining : [event.alert, ...remaining];
+        });
+      }
     });
   }, []);
 
