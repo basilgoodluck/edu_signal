@@ -3,6 +3,7 @@ import { getDistrictsMap, getLeaderboard, getOverview } from "../api/overview.js
 import { subscribeOverview } from "../api/streams.js";
 import { Button, Card, ClusterDot, Icon, SectionLabel, Sparkline, Stat, CLUSTER_ORDER, CLUSTERS, clusterMeta, signed } from "../components/UI.jsx";
 import { DistrictMap } from "../components/Map.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal — Overview dashboard */
 
 function ClusterLegend({ active, onToggle, counts }) {

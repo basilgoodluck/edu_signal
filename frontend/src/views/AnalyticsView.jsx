@@ -3,6 +3,7 @@ import { getAnalyticsSummary } from "../api/analytics.js";
 import { getDistrictsMap } from "../api/overview.js";
 import { ClusterDot, CLUSTER_ORDER, clusterMeta } from "../components/UI.jsx";
 import { ChartFrame, ClusterEmbedding, ShapBeeswarm, CorrHeatmap, ScoreHistogram, RadarChart, CauseStream, setChartData } from "../components/Charts.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 import { PageHeader } from "./OverviewView.jsx";
 /* EduSignal — Signal Lab: the analytics showcase page */
 

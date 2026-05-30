@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getDistrict, getDistrictEvidence, getDistrictInterventions, getDistrictPeers, startDistrictScan } from "../api/districts.js";
 import { Button, Card, ClassificationBadge, CLS_STYLE, ClusterBadge, ClusterDot, ConfidencePill, FEATURE_LABELS, Icon, SectionLabel, ShapWaterfall, SourceTag, clusterMeta, signed } from "../components/UI.jsx";
 import { RadarChart, TrendChart, setChartData } from "../components/Charts.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal — District detail (the demo hero) + reusable EvidenceClipping */
 
 function EvidenceClipping({ ev, compact }) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getClusters } from "../api/clusters.js";
 import { Card, ClusterDot, signed } from "../components/UI.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 import { PageHeader } from "./OverviewView.jsx";
 /* EduSignal — Clusters explorer */
 
