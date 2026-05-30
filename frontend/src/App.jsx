@@ -14,6 +14,7 @@ import EvidenceView from "./views/EvidenceView.jsx";
 import ClustersView from "./views/ClustersView.jsx";
 import { AlertsView, PeersView, TrackerView } from "./views/WorkflowView.jsx";
 import AIPanel from "./views/AIView.jsx";
+import LandingPage from "./views/LandingPage.jsx";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: "grid" },
@@ -230,6 +231,7 @@ function App() {
     setUser(null);
   };
 
+  if (location.pathname === "/landing") return <LandingPage />;
   if (!user) return <LoginView onLogin={setUser} />;
 
   const districtName = bootstrap.districts.find((d) => d.id === route.id)?.name;
