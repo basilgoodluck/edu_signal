@@ -205,10 +205,11 @@ async def _run_scrape(district_id: str, district_name: str, state: str, scan_id:
             except Exception:
                 continue
 
-            await conn.execute(
+            evidence_row = await conn.fetchrow(
                 """
                 INSERT INTO evidence (district_id, raw_text, source_url, source_type, classification, reason)
                 VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id, scraped_at
                 """,
                 district_id,
                 classified["raw"],
@@ -221,9 +222,12 @@ async def _run_scrape(district_id: str, district_name: str, state: str, scan_id:
             await publish_scan_event(scan_id, {
                 "type": "evidence",
                 "item": {
+                    "id": str(evidence_row["id"]),
                     "districtId": district_id,
                     "raw": classified["raw"],
+                    "source": normalize_source_type(item.get("source_type", "news")).replace("_", " ").title(),
                     "sourceType": normalize_source_type(item.get("source_type", "news")),
+                    "date": evidence_row["scraped_at"],
                     "classification": classified["classification"],
                     "reason": classified["reason"],
                     "url": item.get("url") or item.get("source_url") or "",

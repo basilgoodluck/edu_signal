@@ -62,7 +62,7 @@ function DistributionBar({ counts, total, onSelect, active }) {
 
 function LeaderRow({ d, onSelect, onScan }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: "var(--r)", transition: "background 0.12s" }}
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto auto auto", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: "var(--r)", transition: "background 0.12s" }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
       <button onClick={() => onSelect(d.id)} style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, textAlign: "left", flex: 1 }}>
@@ -89,6 +89,8 @@ function LeaderRow({ d, onSelect, onScan }) {
 }
 
 function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
+  const isNarrow = useMediaQuery("(max-width: 980px)");
   const [filter, setFilter] = useState(null);
   const [overview, setOverview] = useState(null);
   const [mapData, setMapData] = useState({ districts: [] });
@@ -129,7 +131,7 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
   ];
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 40px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 40px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="District Intelligence"
         sub="Coloured by root cause, not by score — that's the whole point."
@@ -137,7 +139,7 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
       />
 
       {/* KPI strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden", marginBottom: 22 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isNarrow ? "repeat(2, minmax(0, 1fr))" : "repeat(5, minmax(0, 1fr))", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden", marginBottom: 22 }}>
         {kpis.map((k) => (
           <div key={k.label} style={{ background: "var(--surface)", padding: "16px 18px" }}>
             <Stat {...k} />
@@ -146,12 +148,12 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
       </div>
 
       {/* main split */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.7fr) minmax(300px, 1fr)", gap: 18, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.7fr) minmax(300px, 1fr)", gap: 18, alignItems: "start" }}>
         {/* map */}
         <Card pad={0} style={{ overflow: "hidden" }}>
           <div style={{ padding: "16px 18px", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>Cause map</div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>choropleth by root cause · marker size ∝ severity</div>
               </div>
@@ -159,7 +161,7 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
             </div>
             <ClusterLegend active={filter} onToggle={setFilter} counts={counts} />
           </div>
-          <div style={{ height: 600, background: "oklch(0.11 0.015 235)" }}>
+          <div style={{ height: isMobile ? 420 : 600, background: "oklch(0.11 0.015 235)" }}>
             <DistrictMap districts={districts} selected={null} onSelect={onSelectDistrict} filterCluster={filter} />
           </div>
         </Card>
@@ -184,13 +186,14 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
 }
 
 function PageHeader({ title, sub, actions }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 20, marginBottom: 22 }}>
-      <div>
-        <h1 style={{ margin: 0, fontSize: 25, fontWeight: 700, letterSpacing: "-0.03em" }}>{title}</h1>
+    <div style={{ display: "flex", alignItems: isMobile ? "stretch" : "flex-end", justifyContent: "space-between", gap: isMobile ? 12 : 20, marginBottom: 22, flexDirection: isMobile ? "column" : "row" }}>
+      <div style={{ minWidth: 0 }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 25, fontWeight: 700, letterSpacing: "-0.03em", overflowWrap: "anywhere" }}>{title}</h1>
         {sub && <p style={{ margin: "5px 0 0", fontSize: 14, color: "var(--ink-3)", maxWidth: 560 }}>{sub}</p>}
       </div>
-      {actions && <div style={{ display: "flex", gap: 10, flex: "none" }}>{actions}</div>}
+      {actions && <div style={{ display: "flex", gap: 10, flex: "none", flexWrap: "wrap", minWidth: 0 }}>{actions}</div>}
     </div>
   );
 }

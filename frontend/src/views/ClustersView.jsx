@@ -15,13 +15,13 @@ function ClusterCard({ item, onSelectDistrict, goTo }) {
     <Card pad={0} style={{ overflow: "hidden" }}>
       <div style={{ height: 4, background: m.color }} />
       <div style={{ padding: "18px 20px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             <span style={{ width: 30, height: 30, borderRadius: 8, background: m.tint, display: "grid", placeItems: "center" }}>
               <ClusterDot cluster={cid} size={12} />
             </span>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.02em" }}>{m.label}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.02em", overflowWrap: "anywhere" }}>{m.label}</div>
               <div className="mono" style={{ fontSize: 10.5, color: "var(--ink-3)" }}>{m.window}</div>
             </div>
           </div>
@@ -64,6 +64,7 @@ function ClusterCard({ item, onSelectDistrict, goTo }) {
 }
 
 function ClustersView({ onSelectDistrict, goTo }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
   const [clusters, setClusters] = useState(null);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -76,12 +77,12 @@ function ClustersView({ onSelectDistrict, goTo }) {
   if (!clusters) return <div style={{ padding: 30 }} className="mono">Loading clusters...</div>;
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Cause Clusters"
         sub="Five archetypes discovered by HDBSCAN. Districts that fit nothing are kept as noise — never force-fit."
       />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? "min(100%, 260px)" : "380px"}, 1fr))`, gap: 18 }}>
         {clusters.map((item) => <ClusterCard key={item.cluster.id} item={item} onSelectDistrict={onSelectDistrict} goTo={goTo} />)}
       </div>
     </div>

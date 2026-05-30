@@ -5,9 +5,11 @@ import { subscribeScan } from "../api/streams.js";
 import { Button, Card, CLS_STYLE, ClusterDot, Icon, SOURCE_META } from "../components/UI.jsx";
 import { PageHeader } from "./OverviewView.jsx";
 import { EvidenceClipping } from "./DistrictView.jsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal - Evidence: live scan (Bright Data flow) + global classified feed */
 
 function ScanConsole({ districtId, districtName, onDone, onComplete }) {
+  const isNarrow = useMediaQuery("(max-width: 860px)");
   const [scan, setScan] = useState(null);
   const [found, setFound] = useState([]);
   const done = scan?.status === "complete";
@@ -55,16 +57,16 @@ function ScanConsole({ districtId, districtName, onDone, onComplete }) {
 
   return (
     <Card pad={0} style={{ overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", padding: "13px 16px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <span style={{ width: 8, height: 8, borderRadius: 99, background: done ? "var(--ok)" : "var(--c-migration)", animation: done ? "none" : "pulse 1s infinite" }} />
           <span className="mono" style={{ fontSize: 12, fontWeight: 600 }}>{done ? "SCAN COMPLETE" : "SCANNING"} - {districtName || "district"}</span>
         </div>
         <span className="mono" style={{ fontSize: 10.5, color: "var(--ink-faint)" }}>Bright Data - Web Unlocker + SERP</span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.1fr)", gap: 0 }}>
-        <div style={{ padding: "14px 16px", borderRight: "1px solid var(--border)", background: "var(--bg-sunken)", minHeight: 320 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(0,1.1fr)", gap: 0 }}>
+        <div style={{ padding: "14px 16px", borderRight: isNarrow ? "none" : "1px solid var(--border)", borderBottom: isNarrow ? "1px solid var(--border)" : "none", background: "var(--bg-sunken)", minHeight: isNarrow ? 0 : 320 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {steps.length === 0 && <div className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>Starting scan...</div>}
             {steps.map((s, i) => {
@@ -105,6 +107,7 @@ function ScanConsole({ districtId, districtName, onDone, onComplete }) {
 }
 
 function EvidenceView({ scanTarget, onSelectDistrict }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
   const [scanning, setScanning] = useState(!!scanTarget);
   const [target, setTarget] = useState(scanTarget || "");
   const [clsFilter, setClsFilter] = useState(null);
@@ -151,12 +154,12 @@ function EvidenceView({ scanTarget, onSelectDistrict }) {
   if (error) return <div style={{ padding: 30 }} className="mono">{error}</div>;
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Evidence Engine"
         sub="Every classification shows the raw scraped source first, the verdict second. Nothing is a black box."
         actions={
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
             <select value={target} onChange={(e) => setTarget(e.target.value)}
               style={{ fontFamily: "var(--mono)", fontSize: 12.5, padding: "8px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--surface)", color: "var(--ink)", fontWeight: 600 }}>
               {districts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -197,11 +200,11 @@ function EvidenceView({ scanTarget, onSelectDistrict }) {
         })}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? "min(100%, 260px)" : "330px"}, 1fr))`, gap: 14 }}>
         {filtered.map((ev, i) => (
           <div key={ev.districtId + ev.id} className="fade-up" style={{ animationDelay: Math.min(i * 0.03, 0.4) + "s" }}>
             <button onClick={() => onSelectDistrict(ev.districtId)} style={{ display: "block", width: "100%", textAlign: "left", marginBottom: 6 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 600, color: "var(--ink-2)" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 600, color: "var(--ink-2)", maxWidth: "100%" }}>
                 <ClusterDot cluster={ev.cluster} size={8} />{ev.districtName}
                 <Icon name="arrow" size={12} stroke={2} style={{ color: "var(--ink-faint)" }} />
               </span>

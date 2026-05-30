@@ -35,6 +35,7 @@ def alert_payload(row):
     return {
         "id": str(row["id"]),
         "level": row["level"],
+        "status": row["status"],
         "district": str(row["district_id"]),
         "title": row["title"],
         "body": row["body"],

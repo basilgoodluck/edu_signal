@@ -14,6 +14,8 @@ import EvidenceView from "./views/EvidenceView.jsx";
 import ClustersView from "./views/ClustersView.jsx";
 import { AlertsView, PeersView, TrackerView } from "./views/WorkflowView.jsx";
 import AIPanel from "./views/AIView.jsx";
+import LandingPage from "./views/LandingPage.jsx";
+import { useMediaQuery } from "./hooks/useMediaQuery.js";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: "grid" },
@@ -27,7 +29,7 @@ const NAV = [
 ];
 
 const PATH_BY_VIEW = {
-  overview: "/",
+  overview: "/dashboard",
   lab: "/lab",
   pipeline: "/pipeline",
   clusters: "/clusters",
@@ -40,6 +42,7 @@ const PATH_BY_VIEW = {
 function routeFromPath(pathname) {
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] === "district" && parts[1]) return { view: "district", id: parts[1] };
+  if (pathname === "/dashboard") return { view: "overview", id: null };
   const match = Object.entries(PATH_BY_VIEW).find(([, path]) => path === pathname);
   return { view: match ? match[0] : "overview", id: null };
 }
@@ -123,22 +126,27 @@ function Sidebar({ route, onNav, onOpenCmd, user, summary, onLogout }) {
   );
 }
 
-function Topbar({ route, districtName, pipeline }) {
+function Topbar({ route, districtName, pipeline, onMenu, isMobile }) {
   const labels = { overview: "Overview", lab: "Signal Lab", pipeline: "Data Pipeline", clusters: "Cause Clusters", evidence: "Evidence Engine", peers: "Peers & Fixes", tracker: "Tracker", alerts: "Alerts", district: "District" };
   return (
-    <div style={{ height: 52, borderBottom: "1px solid var(--border)", background: "color-mix(in oklch, var(--surface), transparent 5%)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 30px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12.5 }}>
+    <div style={{ minHeight: 52, borderBottom: "1px solid var(--border)", background: "color-mix(in oklch, var(--surface), transparent 5%)", backdropFilter: "blur(8px)", position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: isMobile ? "0 14px" : "0 30px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12.5, minWidth: 0 }}>
+        {isMobile && (
+          <button onClick={onMenu} title="Open navigation" style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--surface-2)", display: "grid", placeItems: "center", flex: "none" }}>
+            <Icon name="layers" size={16} stroke={2} />
+          </button>
+        )}
         <span className="mono" style={{ color: "var(--brand)", letterSpacing: "0.04em", fontWeight: 600 }}>EduSignal</span>
         <span style={{ color: "var(--ink-faint)" }}>/</span>
-        <span style={{ fontWeight: 600 }}>{route.view === "district" ? districtName || "District" : labels[route.view]}</span>
+        <span style={{ fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{route.view === "district" ? districtName || "District" : labels[route.view]}</span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      {!isMobile && <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11.5, color: "var(--ink-3)" }} className="mono">
           <span style={{ width: 7, height: 7, borderRadius: 99, background: "var(--ok)", animation: "pulse 2s infinite" }} />
           {(pipeline?.label || "PIPELINE LIVE").toUpperCase()}
         </span>
         <span className="mono" style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>ASER 2023 · UDISE+ 2023-24</span>
-      </div>
+      </div>}
     </div>
   );
 }
@@ -192,6 +200,8 @@ function App() {
   const [scanTarget, setScanTarget] = useState(null);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 820px)");
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem(config.auth.tokenKey)); } catch { return null; }
   });
@@ -216,8 +226,8 @@ function App() {
 
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [location.pathname]);
 
-  const goTo = (view) => { setScanTarget(null); navigate(PATH_BY_VIEW[view] || "/"); };
-  const selectDistrict = (id) => { setScanTarget(null); navigate(`/district/${id}`); };
+  const goTo = (view) => { setScanTarget(null); setNavOpen(false); navigate(PATH_BY_VIEW[view] || "/"); };
+  const selectDistrict = (id) => { setScanTarget(null); setNavOpen(false); navigate(`/district/${id}`); };
   const runScan = (id) => { setScanTarget(id); navigate("/evidence"); };
   const openAI = (districtId) => { if (districtId) selectDistrict(districtId); setAiOpen(true); };
   const handleKeyDown = (e) => {
@@ -227,21 +237,31 @@ function App() {
 
   const logout = () => {
     localStorage.removeItem(config.auth.tokenKey);
+    setNavOpen(false);
     setUser(null);
   };
 
+  if (location.pathname === "/landing") return <Navigate to="/" replace />;
+  if (location.pathname === "/") return <LandingPage />;
   if (!user) return <LoginView onLogin={setUser} />;
 
   const districtName = bootstrap.districts.find((d) => d.id === route.id)?.name;
 
   return (
     <div ref={appRef} tabIndex={-1} onKeyDown={handleKeyDown} style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <Sidebar route={route} onNav={goTo} onOpenCmd={() => setCmdOpen(true)} user={user} summary={summary} onLogout={logout} />
+      {!isMobile && <Sidebar route={route} onNav={goTo} onOpenCmd={() => setCmdOpen(true)} user={user} summary={summary} onLogout={logout} />}
+      {isMobile && navOpen && (
+        <div onClick={() => setNavOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 80, background: "oklch(0.08 0.01 235 / 0.6)", display: "flex" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "min(var(--sidebar-w), 86vw)", height: "100vh", boxShadow: "var(--shadow-lg)" }}>
+            <Sidebar route={route} onNav={goTo} onOpenCmd={() => { setCmdOpen(true); setNavOpen(false); }} user={user} summary={summary} onLogout={logout} />
+          </div>
+        </div>
+      )}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <Topbar route={route} districtName={districtName} pipeline={summary?.pipeline} />
+        <Topbar route={route} districtName={districtName} pipeline={summary?.pipeline} onMenu={() => setNavOpen(true)} isMobile={isMobile} />
         <div ref={scrollRef} className="app-canvas" style={{ flex: 1, overflowY: "auto" }}>
           <Routes>
-            <Route path="/" element={<Overview onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={openAI} year="2023" />} />
+            <Route path="/dashboard" element={<Overview onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={openAI} year="2023" />} />
             <Route path="/lab" element={<SignalLab onSelectDistrict={selectDistrict} />} />
             <Route path="/pipeline" element={<PipelineView />} />
             <Route path="/district/:id" element={<DistrictDetail id={route.id} onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={() => setAiOpen(true)} />} />
@@ -250,7 +270,7 @@ function App() {
             <Route path="/peers" element={<PeersView anchorId={route.id} onSelectDistrict={selectDistrict} />} />
             <Route path="/tracker" element={<TrackerView onSelectDistrict={selectDistrict} />} />
             <Route path="/alerts" element={<AlertsView onSelectDistrict={selectDistrict} goTo={goTo} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
       </main>

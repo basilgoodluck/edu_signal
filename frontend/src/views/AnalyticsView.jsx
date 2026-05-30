@@ -16,6 +16,8 @@ function StatChip({ label, value, accent }) {
 }
 
 function SignalLab({ onSelectDistrict }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
+  const isNarrow = useMediaQuery("(max-width: 980px)");
   const [radarDistrict, setRadarDistrict] = useState("");
   const [districts, setDistricts] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -42,12 +44,12 @@ function SignalLab({ onSelectDistrict }) {
   const noiseN = summary.noiseDistricts ?? (total - clustered);
 
   return (
-    <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Signal Lab"
         sub="The model's working memory — embeddings, feature attributions and correlations behind every cluster assignment."
         actions={
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <StatChip label="Silhouette" value={silhouette} accent="var(--ok)" />
             <StatChip label="Clustered" value={clustered + "/" + total} />
             <StatChip label="Noise" value={noiseN} accent="var(--ink-3)" />

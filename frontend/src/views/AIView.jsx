@@ -200,12 +200,19 @@ function AIPanel({ onSelectDistrict, onClose, currentDistrict }) {
             </button>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input value={input} onChange={e => setInput(e.target.value)} ref={inputRef}
-            onKeyDown={e => e.key === "Enter" && handleSend()}
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+          <textarea value={input} onChange={e => setInput(e.target.value)} ref={inputRef}
+            rows={3}
+            aria-label="Ask the AI analyst"
+            onKeyDown={e => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             placeholder="Ask about districts, causes, data..."
-            style={{ flex: 1, padding: "9px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--bg)", color: "var(--ink)", fontSize: 12.5, fontFamily: "var(--sans)", outline: "none" }} />
-          <button onClick={() => handleSend()} style={{ padding: "8px 12px", borderRadius: "var(--r-sm)", background: "var(--brand)", color: "#fff", fontSize: 12, fontWeight: 600 }}>
+            style={{ flex: 1, minWidth: 0, minHeight: 62, maxHeight: "min(28vh, 180px)", resize: "vertical", overflowY: "auto", padding: "9px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--bg)", color: "var(--ink)", fontSize: 12.5, lineHeight: 1.45, fontFamily: "var(--sans)", outline: "none" }} />
+          <button onClick={() => handleSend()} style={{ width: 40, height: 40, display: "grid", placeItems: "center", padding: 0, borderRadius: "var(--r-sm)", background: "var(--brand)", color: "#fff", fontSize: 12, fontWeight: 600, flex: "0 0 auto" }}>
             <Icon name="arrow" size={15} stroke={2.5} />
           </button>
         </div>

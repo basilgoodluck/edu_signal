@@ -534,9 +534,13 @@ function PeerNetwork({ onSelect, anchorId, height = 460 }) {
       }
       // springs
       edges.forEach((e) => {
-        const A = pos[e.a], B = pos[e.b]; let dx = B[0] - A[0], dy = B[1] - A[1]; const dist = Math.hypot(dx, dy) || 1;
+        const a = e.a || e.source;
+        const b = e.b || e.target;
+        const A = pos[a], B = pos[b];
+        if (!A || !B) return;
+        let dx = B[0] - A[0], dy = B[1] - A[1]; const dist = Math.hypot(dx, dy) || 1;
         const f = (dist - 92) * 0.045; const fx = (dx / dist) * f, fy = (dy / dist) * f;
-        vel[e.a][0] += fx; vel[e.a][1] += fy; vel[e.b][0] -= fx; vel[e.b][1] -= fy;
+        vel[a][0] += fx; vel[a][1] += fy; vel[b][0] -= fx; vel[b][1] -= fy;
       });
       // centering + integrate
       ids.forEach((id) => {
@@ -555,7 +559,15 @@ function PeerNetwork({ onSelect, anchorId, height = 460 }) {
 
   const pos = stateRef.current ? stateRef.current.pos : null;
   const neighbors = useMemoC(() => {
-    const map = {}; edges.forEach((e) => { (map[e.a] = map[e.a] || new Set()).add(e.b); (map[e.b] = map[e.b] || new Set()).add(e.a); }); return map;
+    const map = {};
+    edges.forEach((e) => {
+      const a = e.a || e.source;
+      const b = e.b || e.target;
+      if (!a || !b) return;
+      (map[a] = map[a] || new Set()).add(b);
+      (map[b] = map[b] || new Set()).add(a);
+    });
+    return map;
   }, [edges]);
   const focus = hover || anchorId;
   const hoverD = focus ? DC.byId[focus] : null;
@@ -564,9 +576,12 @@ function PeerNetwork({ onSelect, anchorId, height = 460 }) {
     <div ref={wrapRef} style={{ position: "relative", height }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: "block", overflow: "visible" }}>
         {pos && edges.map((e, i) => {
-          const A = pos[e.a], B = pos[e.b]; if (!A || !B) return null;
-          const active = focus && (e.a === focus || e.b === focus);
-          const m = clusterMeta(DC.byId[e.a].cluster);
+          const a = e.a || e.source;
+          const b = e.b || e.target;
+          const A = pos[a], B = pos[b];
+          if (!A || !B || !DC.byId[a]) return null;
+          const active = focus && (a === focus || b === focus);
+          const m = clusterMeta(DC.byId[a].cluster);
           return <line key={i} x1={A[0]} y1={A[1]} x2={B[0]} y2={B[1]} stroke={active ? m.color : "var(--border-strong)"} strokeWidth={active ? 2 : 1} opacity={focus && !active ? 0.12 : active ? 0.7 : 0.4} style={{ transition: "opacity 0.15s" }} />;
         })}
         {pos && nodes.map((n) => {

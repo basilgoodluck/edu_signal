@@ -45,6 +45,7 @@ FEATURE_LABELS = {
     "newsMigration": "Migration signal",
     "newsFlood": "Flood signal",
     "forumComplaints": "Forum complaints",
+    "confidence": "Cluster confidence",
 }
 
 FEATURE_KEY_MAP = {

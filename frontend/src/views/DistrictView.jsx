@@ -27,9 +27,9 @@ function EvidenceClipping({ ev, compact }) {
         <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 9, marginLeft: 18 }}>— {ev.source}</div>
 
         {/* classification verdict */}
-        <div style={{ marginTop: 14, paddingTop: 13, borderTop: "1px solid var(--border)", display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <div style={{ marginTop: 14, paddingTop: 13, borderTop: "1px solid var(--border)", display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
           <ClassificationBadge value={ev.classification} />
-          <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.45, flex: 1 }}>{ev.reason}</p>
+          <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.45, flex: 1, minWidth: 180, overflowWrap: "anywhere" }}>{ev.reason}</p>
         </div>
         {!compact && (
           <button onClick={() => setOpen(!open)} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600, marginTop: 10, display: "inline-flex", alignItems: "center", gap: 5 }}>
@@ -84,6 +84,8 @@ function PeerChip({ id, peerMap = {}, onSelect, accent }) {
 }
 
 function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
+  const isMobile = useMediaQuery("(max-width: 760px)");
+  const isNarrow = useMediaQuery("(max-width: 980px)");
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -110,7 +112,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
   const contra = d.evidence.filter((e) => e.classification === "Contradicting").length;
 
   return (
-    <div className="fade-up" style={{ padding: "20px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
+    <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "20px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       {/* breadcrumb */}
       <button onClick={() => goTo("overview")} className="mono" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600, marginBottom: 16 }}>
         <Icon name="back" size={14} stroke={2} /> ALL DISTRICTS
@@ -118,9 +120,9 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
 
       {/* hero verdict */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, flexWrap: "wrap", marginBottom: 22 }}>
-        <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-            <h1 style={{ margin: 0, fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em" }}>{d.name}</h1>
+        <div style={{ flex: 1, minWidth: isMobile ? "100%" : 280 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap", minWidth: 0 }}>
+            <h1 style={{ margin: 0, fontSize: isMobile ? 24 : 30, fontWeight: 700, letterSpacing: "-0.03em", overflowWrap: "anywhere" }}>{d.name}</h1>
             <span className="mono" style={{ fontSize: 12, color: "var(--ink-3)", padding: "3px 9px", border: "1px solid var(--border)", borderRadius: 99 }}>{d.state}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
@@ -128,7 +130,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
             <ConfidencePill value={d.confidence} />
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {onAskAI && <Button variant="subtle" icon="spark" onClick={onAskAI}>Ask AI</Button>}
           <Button variant="primary" icon="flask" onClick={() => onScan(d.id)}>Run live scan</Button>
         </div>
@@ -136,7 +138,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
 
       {/* verdict explainer band */}
       <div style={{ background: m.tint, border: `1px solid ${m.color}`, borderColor: "color-mix(in oklch, " + "var(--border)" + ", transparent)", borderRadius: "var(--r-lg)", padding: "18px 20px", marginBottom: 22, display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <div style={{ flex: 2, minWidth: 300 }}>
+        <div style={{ flex: 2, minWidth: isMobile ? "100%" : 300 }}>
           <div className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: m.color, fontWeight: 600, marginBottom: 6 }}>WHY THIS CLUSTER</div>
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: "var(--ink)", maxWidth: 620 }}>{m.blurb}</p>
         </div>
@@ -152,7 +154,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
       </div>
 
       {/* main grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.6fr) minmax(300px, 1fr)", gap: 18, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.6fr) minmax(300px, 1fr)", gap: 18, alignItems: "start" }}>
         {/* left: evidence */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <SectionLabel right={
