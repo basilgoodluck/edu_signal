@@ -194,7 +194,7 @@ function PageHeader({ title, sub, actions }) {
         <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 25, fontWeight: 700, letterSpacing: "-0.03em", overflowWrap: "anywhere" }}>{title}</h1>
         {sub && <p style={{ margin: "5px 0 0", fontSize: 14, color: "var(--ink-3)", maxWidth: 560 }}>{sub}</p>}
       </div>
-      {actions && <div style={{ display: "flex", gap: 10, flex: "none", flexWrap: "wrap", minWidth: 0 }}>{actions}</div>}
+      {actions && <div style={{ display: "flex", gap: 10, flex: "none", flexWrap: "wrap", minWidth: 0, width: isMobile ? "100%" : "auto" }}>{actions}</div>}
     </div>
   );
 }

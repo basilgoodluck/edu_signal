@@ -8,6 +8,12 @@ import { PageHeader } from "./OverviewView.jsx";
 import { useMediaQuery } from "../hooks/useMediaQuery.js";
 /* EduSignal - Peers & Interventions, Tracker, Alerts */
 
+function metricValue(metric, district) {
+  const value = district[metric.key];
+  if (metric.key === "vacancyRate") return Math.round((value || 0) * 100) + "%";
+  return value;
+}
+
 function PeersView({ anchorId, onSelectDistrict }) {
   const isMobile = useMediaQuery("(max-width: 760px)");
   const [anchor, setAnchor] = useState(anchorId || "");
@@ -45,7 +51,7 @@ function PeersView({ anchorId, onSelectDistrict }) {
         sub="Same root cause, different outcomes. Borrow what worked next door."
         actions={
           <select value={anchor} onChange={(e) => setAnchor(e.target.value)}
-            style={{ fontFamily: "var(--mono)", fontSize: 12.5, padding: "8px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--surface)", color: "var(--ink)", fontWeight: 600 }}>
+            style={{ fontFamily: "var(--mono)", fontSize: 12.5, padding: "8px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--surface)", color: "var(--ink)", fontWeight: 600, width: isMobile ? "100%" : "auto", maxWidth: isMobile ? "100%" : 360 }}>
             {districts.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         }
@@ -58,37 +64,59 @@ function PeersView({ anchorId, onSelectDistrict }) {
 
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", padding: "18px 20px", marginBottom: 18 }}>
         <SectionLabel right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>force-directed - click a node</span>}>Intervention-transfer network</SectionLabel>
-        <PeerNetwork anchorId={anchor} onSelect={onSelectDistrict} height={420} />
+        <PeerNetwork anchorId={anchor} onSelect={onSelectDistrict} height={isMobile ? 320 : 420} />
       </div>
 
       <Card pad={0} style={{ overflow: "hidden", marginBottom: 18 }}>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
-            <thead>
-              <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
-                <th style={{ textAlign: "left", padding: "12px 16px", fontSize: 11, fontFamily: "var(--mono)", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)", fontWeight: 600 }}>Metric</th>
-                {group.map((g) => <th key={g.id} style={{ padding: "12px 16px", minWidth: 120, textAlign: "left" }}>{g.name}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {(comparison.metrics || []).map((met) => (
-                <tr key={met.key} style={{ borderBottom: "1px solid var(--border)" }}>
-                  <td style={{ padding: "11px 16px", fontSize: 12.5, color: "var(--ink-2)", fontWeight: 500 }}>{met.label}</td>
-                  {group.map((g) => <td key={g.id} className="mono tnum" style={{ padding: "11px 16px", fontSize: 13, fontWeight: 500 }}>{met.key === "vacancyRate" ? Math.round((g[met.key] || 0) * 100) + "%" : g[met.key]}</td>)}
+        {isMobile ? (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {group.map((g) => (
+              <div key={g.id} style={{ padding: "15px 16px", borderBottom: "1px solid var(--border)" }}>
+                <button onClick={() => onSelectDistrict(g.id)} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", textAlign: "left", marginBottom: 12 }}>
+                  <ClusterDot cluster={g.cluster} size={9} />
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</span>
+                  <Icon name="arrow" size={13} stroke={2} style={{ color: "var(--ink-faint)", flex: "none" }} />
+                </button>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                  {(comparison.metrics || []).map((met) => (
+                    <div key={met.key} style={{ padding: "9px 10px", border: "1px solid var(--border)", borderRadius: "var(--r-sm)", background: "var(--surface-2)", minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: "var(--ink-3)", lineHeight: 1.25 }}>{met.label}</div>
+                      <div className="mono tnum" style={{ marginTop: 4, fontSize: 13, fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{metricValue(met, g)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: Math.max(640, 170 + group.length * 160) }}>
+              <thead>
+                <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
+                  <th style={{ textAlign: "left", padding: "12px 16px", fontSize: 11, fontFamily: "var(--mono)", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)", fontWeight: 600, whiteSpace: "nowrap" }}>Metric</th>
+                  {group.map((g) => <th key={g.id} style={{ padding: "12px 16px", minWidth: 150, textAlign: "left", whiteSpace: "nowrap" }}>{g.name}</th>)}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {(comparison.metrics || []).map((met) => (
+                  <tr key={met.key} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "11px 16px", fontSize: 12.5, color: "var(--ink-2)", fontWeight: 500, whiteSpace: "nowrap" }}>{met.label}</td>
+                    {group.map((g) => <td key={g.id} className="mono tnum" style={{ padding: "11px 16px", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>{metricValue(met, g)}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       <SectionLabel>Proven interventions</SectionLabel>
       <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? "min(100%, 260px)" : "300px"}, 1fr))`, gap: 14 }}>
         {interventions.map((iv) => (
           <Card key={iv.id || iv.type} hover>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", lineHeight: 1.3 }}>{iv.type}</div>
-              <div className="mono tnum" style={{ fontSize: 20, fontWeight: 700, color: "var(--ok)" }}>{signed(iv.aserDelta || 0)}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10, flexDirection: isMobile ? "column" : "row" }}>
+              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", lineHeight: 1.3, overflowWrap: "normal", wordBreak: "normal" }}>{iv.type}</div>
+              <div className="mono tnum" style={{ fontSize: 20, fontWeight: 700, color: "var(--ok)", whiteSpace: "nowrap" }}>{signed(iv.aserDelta || 0)}</div>
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5 }}>{iv.blurb}</p>
           </Card>
