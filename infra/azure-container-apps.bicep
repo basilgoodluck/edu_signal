@@ -42,8 +42,11 @@ param brightdataApiKey string
 param brightdataZone string = 'serp_api3'
 
 @secure()
-@description('Gemini API key.')
-param geminiApiKey string
+@description('AIMLAPI API key.')
+param aimlapiApiKey string
+
+@description('AIMLAPI chat completions model.')
+param aimlapiModel string = 'google/gemini-2.5-pro'
 
 @description('Comma-separated list of allowed frontend origins for CORS.')
 param frontendOrigin string
@@ -111,8 +114,8 @@ resource apiApp 'Microsoft.App/containerApps@2024-03-01' = {
           value: brightdataApiKey
         }
         {
-          name: 'gemini-api-key'
-          value: geminiApiKey
+          name: 'aimlapi-api-key'
+          value: aimlapiApiKey
         }
       ]
     }
@@ -147,8 +150,12 @@ resource apiApp 'Microsoft.App/containerApps@2024-03-01' = {
               value: brightdataZone
             }
             {
-              name: 'GEMINI_API_KEY'
-              secretRef: 'gemini-api-key'
+              name: 'AIMLAPI_API_KEY'
+              secretRef: 'aimlapi-api-key'
+            }
+            {
+              name: 'AIMLAPI_MODEL'
+              value: aimlapiModel
             }
             {
               name: 'FRONTEND_ORIGIN'
@@ -193,8 +200,8 @@ resource workerApp 'Microsoft.App/containerApps@2024-03-01' = {
           value: brightdataApiKey
         }
         {
-          name: 'gemini-api-key'
-          value: geminiApiKey
+          name: 'aimlapi-api-key'
+          value: aimlapiApiKey
         }
       ]
     }
@@ -229,8 +236,12 @@ resource workerApp 'Microsoft.App/containerApps@2024-03-01' = {
               value: brightdataZone
             }
             {
-              name: 'GEMINI_API_KEY'
-              secretRef: 'gemini-api-key'
+              name: 'AIMLAPI_API_KEY'
+              secretRef: 'aimlapi-api-key'
+            }
+            {
+              name: 'AIMLAPI_MODEL'
+              value: aimlapiModel
             }
             {
               name: 'FRONTEND_ORIGIN'

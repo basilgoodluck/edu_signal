@@ -16,7 +16,8 @@ This guide deploys only the backend services to Azure Container Apps. The fronte
 - `REDIS_URL`: Redis connection string.
 - `BRIGHTDATA_API_KEY`: Bright Data API key for scraper calls.
 - `BRIGHTDATA_ZONE`: Bright Data zone, defaults to `serp_api3`.
-- `GEMINI_API_KEY`: Gemini API key for evidence classification and AI chat.
+- `AIMLAPI_API_KEY`: AIMLAPI bearer token for evidence classification and AI chat.
+- `AIMLAPI_MODEL`: AIMLAPI chat completions model, defaults to `google/gemini-2.5-pro`.
 - `FRONTEND_ORIGIN`: Comma-separated list of allowed frontend origins for CORS, for example `https://your-app.vercel.app`.
 
 ## Prerequisites
@@ -117,7 +118,8 @@ az deployment group create \
     redisUrl="<REDIS_URL>" \
     brightdataApiKey="<BRIGHTDATA_API_KEY>" \
     brightdataZone="serp_api3" \
-    geminiApiKey="<GEMINI_API_KEY>" \
+    aimlapiApiKey="<AIMLAPI_API_KEY>" \
+    aimlapiModel="google/gemini-2.5-pro" \
     frontendOrigin="https://your-app.vercel.app"
 ```
 
