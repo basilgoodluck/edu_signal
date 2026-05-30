@@ -435,7 +435,7 @@ async def seed():
     for cluster_id, meta in CLUSTER_METADATA.items():
         await conn.execute(
             """
-            INSERT INTO cluster_metadata (id, label, short, color, tint, blurb, window, signature)
+            INSERT INTO cluster_metadata (id, label, short, color, tint, blurb, intervention_window, signature)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             """,
             cluster_id,

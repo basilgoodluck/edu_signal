@@ -43,8 +43,8 @@ function EvidenceClipping({ ev, compact }) {
 
 function FeatureTable({ d }) {
   const rows = [
-    { k: "reading3", v: d.reading3 + "%" }, { k: "arith5", v: d.arith5 + "%" },
-    { k: "yoyReading", v: signed(d.yoyReading), bad: d.yoyReading < 0 },
+    { k: "reading3", v: (d.reading3 * 100).toFixed(1) + "%" }, { k: "arith5", v: (d.arith5 * 100).toFixed(1) + "%" },
+    { k: "yoyReading", v: signed(d.yoyReading * 100, 1) + "pp", bad: d.yoyReading < 0 },
     { k: "ptr", v: d.ptr + ":1", bad: d.ptr > 35 },
     { k: "vacancyRate", v: Math.round(d.vacancyRate * 100) + "%", bad: d.vacancyRate > 0.2 },
     { k: "ndviVar", v: d.ndviVar.toFixed(2) },
@@ -83,7 +83,7 @@ function PeerChip({ id, peerMap = {}, onSelect, accent }) {
   );
 }
 
-function DistrictDetail({ id, onSelectDistrict, goTo, onScan }) {
+function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -128,7 +128,10 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan }) {
             <ConfidencePill value={d.confidence} />
           </div>
         </div>
-        <Button variant="primary" icon="flask" onClick={() => onScan(d.id)}>Run live scan</Button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {onAskAI && <Button variant="subtle" icon="spark" onClick={onAskAI}>Ask AI</Button>}
+          <Button variant="primary" icon="flask" onClick={() => onScan(d.id)}>Run live scan</Button>
+        </div>
       </div>
 
       {/* verdict explainer band */}

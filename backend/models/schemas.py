@@ -58,7 +58,7 @@ class DistrictDetail(BaseModel):
     cluster: Optional[ClusterAssignment] = None
     features: Optional[DistrictFeatures] = None
     evidence: list[Evidence]
-    peers: list[District]
+    peers: list[DistrictListItem]
 
 
 class EvidenceClassifyRequest(BaseModel):

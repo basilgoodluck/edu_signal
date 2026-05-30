@@ -9,6 +9,24 @@ const AI_CHAT_SEED = [
   { role: "ai", text: "I've analyzed the current district signals and evidence feed. What would you like to explore?" },
 ];
 
+const GLOBAL_SUGGESTIONS = [
+  "Which districts need urgent attention?",
+  "What's the dominant root cause cluster?",
+  "Which intervention has the highest ASER delta?",
+  "Compare migration vs teacher shortage districts",
+];
+
+function suggestionsFor(districtName, clusterLabel) {
+  if (!districtName) return GLOBAL_SUGGESTIONS;
+  const short = districtName.split(" ")[0];
+  return [
+    `Why is ${short} underperforming?`,
+    `What worked in ${short}'s peer districts?`,
+    `What's the #1 intervention for ${clusterLabel || "this cluster"}?`,
+    `Is ${short} improving year-over-year?`,
+  ];
+}
+
 function FormattedMessage({ text }) {
   return String(text || "").split("\n").map((line, lineIndex) => {
     const parts = line.split(/(\*\*.*?\*\*)/g).filter(Boolean);
@@ -35,6 +53,8 @@ function AIPanel({ onSelectDistrict, onClose, currentDistrict }) {
   const chatRef = useRef(null);
   const inputRef = useRef(null);
   const byId = Object.fromEntries(districts.map((district) => [district.id, district]));
+  const currentDistrictObj = byId[currentDistrict];
+  const suggestions = suggestionsFor(currentDistrictObj?.name, currentDistrictObj?.cluster);
 
   useEffect(() => {
     getDistrictsMap().then((response) => setDistricts(response.districts || [])).catch(() => null);
@@ -44,9 +64,9 @@ function AIPanel({ onSelectDistrict, onClose, currentDistrict }) {
     getInsights(currentDistrict, 10).then((response) => setInsights(response.items || [])).catch(() => setInsights([]));
   }, [currentDistrict]);
 
-  function handleSend() {
-    if (!input.trim() || typing) return;
-    const q = input.trim();
+  function handleSend(text) {
+    const q = (text || input).trim();
+    if (!q || typing) return;
     setMessages(prev => [...prev, { role: "user", text: q }]);
     setInput("");
     setTyping(true);
@@ -95,8 +115,8 @@ function AIPanel({ onSelectDistrict, onClose, currentDistrict }) {
             <Icon name="spark" size={15} stroke={2.2} style={{ color: "#fff" }} />
           </span>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>AI Analyst</div>
-            <div className="mono" style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>RAG - EVIDENCE-BACKED</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>AI Analyst{currentDistrictObj ? ` · ${currentDistrictObj.name}` : ""}</div>
+            <div className="mono" style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.06em" }}>RAG · EVIDENCE-BACKED</div>
           </div>
         </div>
         <button onClick={onClose} style={{ padding: 4 }}><Icon name="close" size={16} stroke={2} style={{ color: "var(--ink-3)" }} /></button>
@@ -109,7 +129,10 @@ function AIPanel({ onSelectDistrict, onClose, currentDistrict }) {
             {insights.map(ins => {
               const t = typeMap[ins.type] || typeMap.finding;
               return (
-                <div key={ins.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "12px 13px", fontSize: 12.5 }}>
+                <div key={ins.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)", padding: "12px 13px", fontSize: 12.5, cursor: "pointer", transition: "border-color 0.12s" }}
+                  onClick={() => handleSend(`Tell me more about: ${ins.title}`)}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--brand)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
                     <span className="mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: t.c }}>{t.label}</span>
                     {ins.metric && <span className="mono tnum" style={{ fontSize: 11, fontWeight: 700, color: t.c }}>{ins.metric.value}</span>}
@@ -165,17 +188,28 @@ function AIPanel({ onSelectDistrict, onClose, currentDistrict }) {
         </div>
       </div>
 
-      <div style={{ padding: "10px 14px", borderTop: "1px solid var(--border)", background: "var(--surface)" }}>
+      <div style={{ padding: "8px 14px 10px", borderTop: "1px solid var(--border)", background: "var(--surface)" }}>
+        {/* suggestion chips */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
+          {suggestions.map((s) => (
+            <button key={s} onClick={() => handleSend(s)} disabled={typing}
+              style={{ fontSize: 10.5, padding: "4px 9px", borderRadius: 99, border: "1px solid var(--border)", background: "var(--surface-2)", color: "var(--ink-2)", fontFamily: "var(--sans)", cursor: "pointer", transition: "border-color 0.12s, color 0.12s", opacity: typing ? 0.5 : 1 }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--brand)"; e.currentTarget.style.color = "var(--brand)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--ink-2)"; }}>
+              {s}
+            </button>
+          ))}
+        </div>
         <div style={{ display: "flex", gap: 8 }}>
           <input value={input} onChange={e => setInput(e.target.value)} ref={inputRef}
             onKeyDown={e => e.key === "Enter" && handleSend()}
             placeholder="Ask about districts, causes, data..."
             style={{ flex: 1, padding: "9px 12px", border: "1px solid var(--border-strong)", borderRadius: "var(--r-sm)", background: "var(--bg)", color: "var(--ink)", fontSize: 12.5, fontFamily: "var(--sans)", outline: "none" }} />
-          <button onClick={handleSend} style={{ padding: "8px 12px", borderRadius: "var(--r-sm)", background: "var(--brand)", color: "#fff", fontSize: 12, fontWeight: 600 }}>
+          <button onClick={() => handleSend()} style={{ padding: "8px 12px", borderRadius: "var(--r-sm)", background: "var(--brand)", color: "#fff", fontSize: 12, fontWeight: 600 }}>
             <Icon name="arrow" size={15} stroke={2.5} />
           </button>
         </div>
-        <div className="mono" style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 6, textAlign: "center" }}>Evidence-grounded - cites sources</div>
+        <div className="mono" style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 6, textAlign: "center" }}>Evidence-grounded · cites sources</div>
       </div>
     </aside>
   );

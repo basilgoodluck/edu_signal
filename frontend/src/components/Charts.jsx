@@ -408,7 +408,7 @@ function RadarChart({ districtId, height = 300 }) {
 
 /* ============ 6. MULTI-SERIES TREND w/ crosshair ============ */
 function TrendChart({ district, height = 240 }) {
-  const d = district || DC.byId("shravasti");
+  const d = district || DC.DISTRICTS[0];
   const W = 600, H = 250, PADL = 38, PADB = 28, PADT = 14, PADR = 16;
   const [hoverI, setHoverI] = useStateC(null);
   const wrapRef = useRefC(null);

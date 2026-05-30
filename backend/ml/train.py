@@ -112,11 +112,18 @@ async def run():
             confidence = float(confidences[i])
 
             pred_class = int(clf.predict(X_scaled[i : i + 1])[0])
-            sv = (
-                shap_matrix[pred_class][i]
-                if isinstance(shap_matrix, list)
-                else shap_matrix[i]
-            )
+            n_samp = len(X_scaled)
+            if isinstance(shap_matrix, list):
+                # older SHAP: list of (n_samples, n_features) per class
+                sv = np.asarray(shap_matrix[pred_class][i]).flatten()
+            elif shap_matrix.ndim == 3 and shap_matrix.shape[0] == n_samp:
+                # newer SHAP: (n_samples, n_features, n_classes)
+                sv = np.asarray(shap_matrix[i, :, pred_class]).flatten()
+            elif shap_matrix.ndim == 3:
+                # (n_classes, n_samples, n_features)
+                sv = np.asarray(shap_matrix[pred_class, i, :]).flatten()
+            else:
+                sv = np.asarray(shap_matrix[i]).flatten()
             shap_dict = {
                 FEATURE_COLUMNS[j]: round(float(sv[j]), 4)
                 for j in range(len(FEATURE_COLUMNS))

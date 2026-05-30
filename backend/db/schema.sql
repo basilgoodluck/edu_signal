@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS cluster_metadata (
     color TEXT,
     tint TEXT,
     blurb TEXT,
-    window TEXT,
+    intervention_window TEXT,
     signature TEXT[]
 );
 
@@ -100,6 +100,22 @@ CREATE TABLE IF NOT EXISTS scan_steps (
     source TEXT,
     status TEXT,
     updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS aser_outcomes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    year INT NOT NULL,
+    state TEXT NOT NULL,
+    region TEXT,
+    grade INT NOT NULL,
+    subject TEXT NOT NULL,
+    metric TEXT NOT NULL,
+    pct_all_schools FLOAT,
+    pct_govt FLOAT,
+    pct_pvt FLOAT,
+    data_type TEXT,
+    source TEXT,
+    UNIQUE (year, state, grade, subject, metric)
 );
 
 CREATE TABLE IF NOT EXISTS model_runs (

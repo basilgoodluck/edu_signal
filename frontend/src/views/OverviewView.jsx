@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getDistrictsMap, getLeaderboard, getOverview } from "../api/overview.js";
 import { subscribeOverview } from "../api/streams.js";
-import { Button, Card, ClusterDot, SectionLabel, Sparkline, Stat, CLUSTER_ORDER, CLUSTERS, clusterMeta, signed } from "../components/UI.jsx";
+import { Button, Card, ClusterDot, Icon, SectionLabel, Sparkline, Stat, CLUSTER_ORDER, CLUSTERS, clusterMeta, signed } from "../components/UI.jsx";
 import { DistrictMap } from "../components/Map.jsx";
 /* EduSignal â€” Overview dashboard */
 
@@ -60,29 +60,35 @@ function DistributionBar({ counts, total, onSelect, active }) {
   );
 }
 
-function LeaderRow({ d, onSelect }) {
+function LeaderRow({ d, onSelect, onScan }) {
   return (
-    <button onClick={() => onSelect(d.id)}
-      style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: "var(--r)", width: "100%", textAlign: "left", transition: "background 0.12s" }}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: "var(--r)", transition: "background 0.12s" }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+      <button onClick={() => onSelect(d.id)} style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, textAlign: "left", flex: 1 }}>
         <ClusterDot cluster={d.cluster} size={9} ring />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.name}</div>
-          <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)" }}>{d.stateCode} Â· {clusterMeta(d.cluster).short}</div>
+          <div className="mono" style={{ fontSize: 10, color: "var(--ink-3)" }}>{d.stateCode} · {clusterMeta(d.cluster).short}</div>
         </div>
+      </button>
+      <Sparkline data={d.trend} w={56} h={24} color={clusterMeta(d.cluster).color} fill />
+      <div style={{ textAlign: "right", minWidth: 48 }}>
+        <div className="mono tnum" style={{ fontSize: 14, fontWeight: 600 }}>{(d.reading3 * 100).toFixed(1)}%</div>
+        <div className="mono tnum" style={{ fontSize: 10, color: d.yoyReading < 0 ? "var(--bad)" : "var(--ok)", fontWeight: 600 }}>{signed(d.yoyReading * 100, 1)}pp</div>
       </div>
-      <Sparkline data={d.trend} w={64} h={26} color={clusterMeta(d.cluster).color} fill />
-      <div style={{ textAlign: "right", minWidth: 52 }}>
-        <div className="mono tnum" style={{ fontSize: 15, fontWeight: 600 }}>{d.reading3}%</div>
-        <div className="mono tnum" style={{ fontSize: 10.5, color: d.yoyReading < 0 ? "var(--bad)" : "var(--ok)", fontWeight: 600 }}>{signed(d.yoyReading)}</div>
-      </div>
-    </button>
+      <button onClick={(e) => { e.stopPropagation(); onScan && onScan(d.id); }}
+        title="Run live scan"
+        style={{ padding: "5px 7px", borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--ink-3)", display: "flex", alignItems: "center", transition: "border-color 0.12s, color 0.12s", flex: "none" }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--brand)"; e.currentTarget.style.color = "var(--brand)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--ink-3)"; }}>
+        <Icon name="flask" size={13} stroke={2} />
+      </button>
+    </div>
   );
 }
 
-function Overview({ onSelectDistrict, goTo, year }) {
+function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
   const [filter, setFilter] = useState(null);
   const [overview, setOverview] = useState(null);
   const [mapData, setMapData] = useState({ districts: [] });
@@ -108,7 +114,7 @@ function Overview({ onSelectDistrict, goTo, year }) {
 
   const counts = overview.clusterCounts || {};
   const total = overview.totals.districtsAnalyzed;
-  const avgRead = Math.round(overview.totals.avgReading3);
+  const avgRead = (overview.totals.avgReading3 * 100).toFixed(1);
   const declining = overview.totals.decliningYoyCount;
   const evidenceCount = overview.totals.liveEvidenceCount;
   const dominant = overview.totals.dominantCluster;
@@ -168,7 +174,7 @@ function Overview({ onSelectDistrict, goTo, year }) {
           <Card pad={12}>
             <SectionLabel style={{ padding: "4px 6px 0", marginBottom: 6 }}>Lowest performing</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              {leaderboard.map((d) => <LeaderRow key={d.id} d={d} onSelect={onSelectDistrict} />)}
+              {leaderboard.map((d) => <LeaderRow key={d.id} d={d} onSelect={onSelectDistrict} onScan={onScan} />)}
             </div>
           </Card>
         </div>
