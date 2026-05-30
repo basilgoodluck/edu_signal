@@ -61,12 +61,20 @@ async def enqueue_scan(district_id: str, district_name: str, state: str, sources
 
 @celery_app.task(bind=True)
 def run_scrape_job(self, district_id: str, district_name: str, state: str, scan_id: str | None = None):
+    return asyncio.run(_run_scrape_job(district_id, district_name, state, scan_id))
+
+
+async def _run_scrape_job(district_id: str, district_name: str, state: str, scan_id: str | None = None):
     try:
-        return asyncio.run(_run_scrape(district_id, district_name, state, scan_id))
+        return await _run_scrape(district_id, district_name, state, scan_id)
     except Exception as exc:
         if scan_id:
-            asyncio.run(mark_scan_failed(scan_id, str(exc)))
+            await mark_scan_failed(scan_id, str(exc))
         raise
+    finally:
+        from db.session import close_pool
+
+        await close_pool()
 
 
 async def publish_scan_event(scan_id: str | None, event: dict):

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getEvidence, getEvidenceSummary, createScan } from "../api/evidence.js";
+import { getEvidence, getEvidenceSummary, createScan, getScan } from "../api/evidence.js";
 import { getDistrictsMap } from "../api/overview.js";
 import { subscribeScan } from "../api/streams.js";
 import { Button, Card, CLS_STYLE, ClusterDot, Icon, SOURCE_META } from "../components/UI.jsx";
@@ -7,7 +7,7 @@ import { PageHeader } from "./OverviewView.jsx";
 import { EvidenceClipping } from "./DistrictView.jsx";
 /* EduSignal - Evidence: live scan (Bright Data flow) + global classified feed */
 
-function ScanConsole({ districtId, districtName, onDone }) {
+function ScanConsole({ districtId, districtName, onDone, onComplete }) {
   const [scan, setScan] = useState(null);
   const [found, setFound] = useState([]);
   const done = scan?.status === "complete";
@@ -20,8 +20,30 @@ function ScanConsole({ districtId, districtName, onDone }) {
       setScan(created);
       setFound(created.found || []);
       cleanup = subscribeScan(created.scanId, (event) => {
-        setScan((current) => ({ ...(current || created), ...event }));
-        if (event.found) setFound(event.found);
+        if (event.type === "step" && event.step) {
+          setScan((current) => {
+            const base = current || created;
+            return {
+              ...base,
+              steps: (base.steps || []).map((step) => (
+                step.index === event.step.index ? event.step : step
+              )),
+            };
+          });
+        } else if (event.type === "evidence" && event.item) {
+          setFound((current) => [event.item, ...current]);
+        } else if (event.type === "complete" && event.scan) {
+          getScan(created.scanId).then((latest) => {
+            setScan(latest);
+            setFound(latest.found || []);
+            onComplete?.();
+          }).catch(() => setScan((current) => ({ ...(current || created), ...event.scan })));
+        } else if (event.type === "error") {
+          setScan((current) => ({ ...(current || created), status: "failed", message: event.message }));
+        } else {
+          setScan((current) => ({ ...(current || created), ...event }));
+          if (event.found) setFound(event.found);
+        }
       });
     }).catch(() => {
       setScan({ status: "error", steps: [] });
@@ -46,7 +68,7 @@ function ScanConsole({ districtId, districtName, onDone }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {steps.length === 0 && <div className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>Starting scan...</div>}
             {steps.map((s, i) => {
-              const state = s.status === "complete" ? "done" : s.status === "running" ? "run" : "wait";
+              const state = ["complete", "done"].includes(s.status) ? "done" : ["running", "run"].includes(s.status) ? "run" : "wait";
               return (
                 <div key={s.index ?? i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", borderRadius: 6, opacity: state === "wait" ? 0.4 : 1, background: state === "run" ? "var(--surface)" : "transparent", transition: "opacity 0.3s" }}>
                   <span style={{ width: 15, flex: "none", display: "flex", justifyContent: "center" }}>
@@ -111,6 +133,16 @@ function EvidenceView({ scanTarget, onSelectDistrict }) {
       .catch(() => setFeed([]));
   }, [target]);
 
+  function refreshEvidence() {
+    if (!target) return;
+    Promise.all([getEvidence({ districtId: target, limit: 50 }), getEvidenceSummary()])
+      .then(([evidenceResponse, summaryResponse]) => {
+        setFeed(evidenceResponse.items || []);
+        setSummary(summaryResponse);
+      })
+      .catch(() => null);
+  }
+
   const filtered = useMemo(() => feed.filter((e) => (!clsFilter || e.classification === clsFilter) && (!srcFilter || e.sourceType === srcFilter)), [feed, clsFilter, srcFilter]);
   const clsCounts = summary.classificationCounts || {};
   const sourceMeta = summary.sourceMeta || SOURCE_META;
@@ -136,7 +168,7 @@ function EvidenceView({ scanTarget, onSelectDistrict }) {
 
       {scanning && target && (
         <div style={{ marginBottom: 24 }}>
-          <ScanConsole districtId={target} districtName={targetDistrict?.name} onDone={(id) => { setScanning(false); onSelectDistrict(id); }} />
+          <ScanConsole districtId={target} districtName={targetDistrict?.name} onComplete={refreshEvidence} onDone={(id) => { setScanning(false); onSelectDistrict(id); }} />
         </div>
       )}
 

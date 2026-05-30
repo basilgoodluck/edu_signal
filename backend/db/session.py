@@ -32,6 +32,13 @@ async def get_pool() -> asyncpg.Pool:
     return _pool
 
 
+async def close_pool():
+    global _pool
+    if _pool is not None:
+        await _pool.close()
+        _pool = None
+
+
 async def init_db():
     pool = await get_pool()
     async with pool.acquire() as conn:
