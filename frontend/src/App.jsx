@@ -28,7 +28,7 @@ const NAV = [
 ];
 
 const PATH_BY_VIEW = {
-  overview: "/",
+  overview: "/dashboard",
   lab: "/lab",
   pipeline: "/pipeline",
   clusters: "/clusters",
@@ -41,6 +41,7 @@ const PATH_BY_VIEW = {
 function routeFromPath(pathname) {
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] === "district" && parts[1]) return { view: "district", id: parts[1] };
+  if (pathname === "/dashboard") return { view: "overview", id: null };
   const match = Object.entries(PATH_BY_VIEW).find(([, path]) => path === pathname);
   return { view: match ? match[0] : "overview", id: null };
 }
@@ -231,7 +232,8 @@ function App() {
     setUser(null);
   };
 
-  if (location.pathname === "/landing") return <LandingPage />;
+  if (location.pathname === "/landing") return <Navigate to="/" replace />;
+  if (location.pathname === "/") return <LandingPage />;
   if (!user) return <LoginView onLogin={setUser} />;
 
   const districtName = bootstrap.districts.find((d) => d.id === route.id)?.name;
@@ -243,7 +245,7 @@ function App() {
         <Topbar route={route} districtName={districtName} pipeline={summary?.pipeline} />
         <div ref={scrollRef} className="app-canvas" style={{ flex: 1, overflowY: "auto" }}>
           <Routes>
-            <Route path="/" element={<Overview onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={openAI} year="2023" />} />
+            <Route path="/dashboard" element={<Overview onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={openAI} year="2023" />} />
             <Route path="/lab" element={<SignalLab onSelectDistrict={selectDistrict} />} />
             <Route path="/pipeline" element={<PipelineView />} />
             <Route path="/district/:id" element={<DistrictDetail id={route.id} onSelectDistrict={selectDistrict} goTo={goTo} onScan={runScan} onAskAI={() => setAiOpen(true)} />} />
@@ -252,7 +254,7 @@ function App() {
             <Route path="/peers" element={<PeersView anchorId={route.id} onSelectDistrict={selectDistrict} />} />
             <Route path="/tracker" element={<TrackerView onSelectDistrict={selectDistrict} />} />
             <Route path="/alerts" element={<AlertsView onSelectDistrict={selectDistrict} goTo={goTo} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
       </main>

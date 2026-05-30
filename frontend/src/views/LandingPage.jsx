@@ -93,7 +93,7 @@ function LandingPage() {
             <a href="#clusters">Cause clusters</a>
             <a href="#evidence">Evidence</a>
           </div>
-          <a href="/" className="landing-btn landing-btn-primary">Launch app <ArrowIcon /></a>
+          <a href="/dashboard" className="landing-btn landing-btn-primary">Launch app <ArrowIcon /></a>
         </div>
       </nav>
 
@@ -103,7 +103,7 @@ function LandingPage() {
           <h1>Stop guessing <em>why</em> a district's learning outcomes are falling.</h1>
           <p>EduSignal fuses ASER, UDISE+, satellite NDVI, vacancy portals and local news into one signal, then names the actual cause behind each district's collapse: migration, language, teachers, infrastructure, or pedagogy.</p>
           <div className="landing-hero-cta">
-            <a href="/" className="landing-btn landing-btn-primary">Open the dashboard <ArrowIcon /></a>
+            <a href="/dashboard" className="landing-btn landing-btn-primary">Open the dashboard <ArrowIcon /></a>
             <a href="#pipeline" className="landing-btn landing-btn-ghost">See how it works</a>
           </div>
           <div className="landing-hero-meta">
@@ -220,7 +220,7 @@ function LandingPage() {
           <h2>734 districts. One dashboard. The right answer for each.</h2>
           <p>Open EduSignal and start with the live overview, or jump straight to a district you care about via command search.</p>
           <div className="landing-hero-cta">
-            <a href="/" className="landing-btn landing-btn-primary">Launch EduSignal <ArrowIcon /></a>
+            <a href="/dashboard" className="landing-btn landing-btn-primary">Launch EduSignal <ArrowIcon /></a>
             <a href="/clusters" className="landing-btn landing-btn-ghost">Browse cause clusters</a>
           </div>
         </div>
@@ -230,7 +230,7 @@ function LandingPage() {
         <div className="landing-shell landing-footer-inner">
           <span>EDUSIGNAL - ROOT-CAUSE INTEL - v1.4</span>
           <span>Built on ASER - UDISE+ - ISRO Bhuvan - UPSESSB - PM-POSHAN</span>
-          <a href="/">open dashboard</a>
+          <a href="/dashboard">open dashboard</a>
         </div>
       </footer>
     </div>
