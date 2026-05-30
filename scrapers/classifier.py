@@ -1,6 +1,7 @@
 import asyncio
 import httpx
 import os
+from dotenv import load_dotenv
 
 AIMLAPI_API_KEY = os.environ["AIMLAPI_API_KEY"]
 AIMLAPI_MODEL = os.environ.get("AIMLAPI_MODEL", "google/gemini-2.5-pro")
@@ -62,7 +63,6 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
                 },
             )
             if response.status_code == 429:
-                # cap individual backoff at 60s; caller also paces calls every 4s
                 wait = min(2 ** attempt * 5, 60)
                 await asyncio.sleep(wait)
                 continue
