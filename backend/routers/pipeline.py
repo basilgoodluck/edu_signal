@@ -76,7 +76,7 @@ async def pipeline_stages():
     return [
         {"id": "ingest", "title": "Ingest", "sub": "Source discovery", "detail": "Configured source inventory is active.", "metric": "5", "metricLabel": "sources", "status": "running"},
         {"id": "scrape", "title": "Scrape", "sub": "Document capture", "detail": "On-demand district scans collect source evidence.", "metric": scan_status, "metricLabel": "latest scan", "status": "running" if scan_status == "running" else "complete"},
-        {"id": "classify", "title": "Classify", "sub": "Evidence labeling", "detail": "Gemini classifies source snippets against cluster hypotheses.", "metric": scan_status, "metricLabel": "classifier", "status": "running" if scan_status == "running" else "complete"},
+        {"id": "classify", "title": "Classify", "sub": "Evidence labeling", "detail": "AIMLAPI classifies source snippets against cluster hypotheses.", "metric": scan_status, "metricLabel": "classifier", "status": "running" if scan_status == "running" else "complete"},
         {"id": "cluster", "title": "Cluster", "sub": "Root-cause model", "detail": "District features are clustered into cause signatures.", "metric": model_status, "metricLabel": "model", "status": model_status},
         {"id": "shap", "title": "SHAP", "sub": "Feature attribution", "detail": "Model attributions are stored with each district assignment.", "metric": model_status, "metricLabel": "explainability", "status": model_status},
         {"id": "publish", "title": "Publish", "sub": "API and streams", "detail": "REST and SSE endpoints expose current signals.", "metric": "live", "metricLabel": "API", "status": "running"},
@@ -108,7 +108,7 @@ async def pipeline_overview():
         "stats": [
             {"label": "Evidence records", "value": str(evidence_count), "accent": "blue", "sub": "classified source snippets"},
             {"label": "Scan runs", "value": str(scan_count), "accent": "green", "sub": f"last scan {last_scan_label}"},
-            {"label": "Classifier outputs", "value": str(classified), "accent": "purple", "sub": "Gemini-labeled records"},
+            {"label": "Classifier outputs", "value": str(classified), "accent": "purple", "sub": "AIMLAPI-labeled records"},
             {"label": "Sources live", "value": str(len([s for s in sources if s["status"] == "healthy"])), "accent": "teal", "sub": "configured evidence sources"},
         ],
         "throughput": [

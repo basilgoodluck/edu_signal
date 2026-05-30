@@ -7,16 +7,14 @@ import httpx
 import redis.asyncio as redis
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
+from config import AIMLAPI_MODEL
 from db.session import get_pool
 from dto.mappers import map_district, map_intervention
 from sse import REDIS_URL, publish_event
 
 router = APIRouter()
 
-GEMINI_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models"
-    "/gemini-3.1-flash-lite:generateContent"
-)
+AIMLAPI_CHAT_COMPLETIONS_URL = "https://api.aimlapi.com/chat/completions"
 
 DISTRICT_BASE_SELECT = """
     SELECT d.id, d.name, d.state, d.lat, d.lng,
@@ -126,25 +124,29 @@ async def answer_chat(message_id: str, conversation_id: str, user_message: str, 
     history = await load_chat_history(conversation_id)
     context = f"\nDistrict context: {json.dumps(district_context)}" if district_context else ""
     prompt = system + context + "\nRecent conversation:\n" + json.dumps(history[-8:]) + f"\nUser: {user_message}\nAssistant:"
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("AIMLAPI_API_KEY")
     text = ""
     try:
         if not api_key:
-            text = "I can answer from the local EduSignal data, but GEMINI_API_KEY is not configured for generated chat."
+            text = "I can answer from the local EduSignal data, but AIMLAPI_API_KEY is not configured for generated chat."
         else:
             async with httpx.AsyncClient(timeout=45) as client:
                 response = await client.post(
-                    GEMINI_URL,
-                    params={"key": api_key},
-                    headers={"Content-Type": "application/json"},
+                    AIMLAPI_CHAT_COMPLETIONS_URL,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                    },
                     json={
-                        "contents": [{"parts": [{"text": prompt}]}],
-                        "generationConfig": {"maxOutputTokens": 700, "temperature": 0.2},
+                        "model": AIMLAPI_MODEL,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": 700,
+                        "temperature": 0.2,
                     },
                 )
                 response.raise_for_status()
             data = response.json()
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            text = data["choices"][0]["message"]["content"]
 
         emitted = ""
         for token in text.split(" "):

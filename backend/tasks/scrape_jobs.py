@@ -175,7 +175,7 @@ async def _run_scrape(district_id: str, district_name: str, state: str, scan_id:
         )
         cluster_type = cluster_row["cluster_label"] if cluster_row else "seasonal_migration"
 
-        # Limit to 10 items to stay within Gemini free-tier RPM (~15/min)
+        # Limit to 10 items to keep provider calls paced.
         candidates = [
             item for item in all_raw
             if "error" not in item
@@ -192,7 +192,7 @@ async def _run_scrape(district_id: str, district_name: str, state: str, scan_id:
 
             try:
                 classified = await classify_evidence(text, cluster_type)
-                # 4s gap keeps us under the 15 RPM free-tier limit
+                # Keep calls paced so live scans do not flood the classifier.
                 await asyncio.sleep(4)
             except Exception:
                 continue

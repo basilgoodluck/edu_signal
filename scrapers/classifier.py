@@ -3,11 +3,9 @@ import httpx
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
-AIMLAPI_KEY = os.environ["AIMLAPI_KEY"]
-AIMLAPI_URL = "https://api.aimlapi.com/v1/chat/completions"
-MODEL = "google/gemini-3.5-flash"
+AIMLAPI_API_KEY = os.environ["AIMLAPI_API_KEY"]
+AIMLAPI_MODEL = os.environ.get("AIMLAPI_MODEL", "google/gemini-2.5-pro")
+AIMLAPI_CHAT_COMPLETIONS_URL = "https://api.aimlapi.com/chat/completions"
 
 CLUSTER_HYPOTHESES = {
     "seasonal_migration": "The district is underperforming due to seasonal agricultural migration pulling children out of school during harvest periods.",
@@ -52,13 +50,13 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
         for attempt in range(5):
             response = await client.post(
-                AIMLAPI_URL,
+                AIMLAPI_CHAT_COMPLETIONS_URL,
                 headers={
-                    "Authorization": f"Bearer {AIMLAPI_KEY}",
+                    "Authorization": f"Bearer {AIMLAPI_API_KEY}",
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": MODEL,
+                    "model": AIMLAPI_MODEL,
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": 300,
                     "temperature": 0.1,
@@ -74,7 +72,7 @@ async def classify_evidence(evidence_text: str, cluster_type: str) -> dict:
             response.raise_for_status()
 
     data = response.json()
-    raw_text = data["choices"][0]["message"]["content"]  # OpenAI-style response
+    raw_text = data["choices"][0]["message"]["content"]
     parsed = parse_classification(raw_text)
     parsed["cluster_type"] = cluster_type
     parsed["hypothesis"] = hypothesis
