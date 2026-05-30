@@ -1,5 +1,5 @@
 import { useState } from "react";
-/* EduSignal â€” shared UI primitives & design system */
+/* EduSignal — shared UI primitives & design system */
 
 /* ---------- helpers ---------- */
 const CLUSTER_ORDER = ["seasonal_migration", "language_barrier", "teacher_shortage", "infrastructure", "pedagogical", "noise"];
@@ -117,7 +117,7 @@ function ConfidencePill({ value }) {
         <span style={{ display: "block", height: "100%", width: (value * 100) + "%", background: col, borderRadius: 99 }} />
       </span>
       <span className="mono tnum" style={{ color: col, fontWeight: 600 }}>{value.toFixed(2)}</span>
-      <span style={{ color: "var(--ink-3)" }}>Â· {lvl}</span>
+      <span style={{ color: "var(--ink-3)" }}>· {lvl}</span>
     </span>
   );
 }
@@ -254,7 +254,7 @@ function ShapWaterfall({ shap, cluster }) {
 
 /* ---------- source clipping meta ---------- */
 function SourceTag({ sourceType }) {
-  const meta = SOURCE_META[sourceType] || { label: sourceType.toUpperCase(), icon: "â€¢" };
+  const meta = SOURCE_META[sourceType] || { label: sourceType.toUpperCase(), icon: "•" };
   return (
     <span className="mono" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--ink-3)" }}>
       <span style={{ fontSize: 11 }}>{meta.icon}</span>{meta.label}

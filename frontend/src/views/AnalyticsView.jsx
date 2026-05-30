@@ -4,8 +4,7 @@ import { getDistrictsMap } from "../api/overview.js";
 import { ClusterDot, CLUSTER_ORDER, clusterMeta } from "../components/UI.jsx";
 import { ChartFrame, ClusterEmbedding, ShapBeeswarm, CorrHeatmap, ScoreHistogram, RadarChart, CauseStream, setChartData } from "../components/Charts.jsx";
 import { PageHeader } from "./OverviewView.jsx";
-import { useMediaQuery } from "../hooks/useMediaQuery.js";
-/* EduSignal â€” Signal Lab: the analytics showcase page */
+/* EduSignal — Signal Lab: the analytics showcase page */
 
 function StatChip({ label, value, accent }) {
   return (
@@ -48,7 +47,7 @@ function SignalLab({ onSelectDistrict }) {
     <div className="fade-up" style={{ padding: isMobile ? "18px 14px 34px" : "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Signal Lab"
-        sub="The model's working memory â€” embeddings, feature attributions and correlations behind every cluster assignment."
+        sub="The model's working memory — embeddings, feature attributions and correlations behind every cluster assignment."
         actions={
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <StatChip label="Silhouette" value={silhouette} accent="var(--ok)" />
@@ -59,19 +58,19 @@ function SignalLab({ onSelectDistrict }) {
       />
 
       {/* row 1: embedding (big) + beeswarm */}
-      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
-        <ChartFrame title="District embedding" caption="UMAP projection Â· HDBSCAN clusters Â· marker size âˆ severity"
-          right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", padding: "3px 8px", border: "1px solid var(--border)", borderRadius: 99 }}>2D Â· cosine</span>}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
+        <ChartFrame title="District embedding" caption="UMAP projection · HDBSCAN clusters · marker size ∝ severity"
+          right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)", padding: "3px 8px", border: "1px solid var(--border)", borderRadius: 99 }}>2D · cosine</span>}>
           <ClusterEmbedding onSelect={onSelectDistrict} height={440} />
         </ChartFrame>
-        <ChartFrame title="SHAP feature attribution" caption="each dot = one district Â· colour = its cluster">
+        <ChartFrame title="SHAP feature attribution" caption="each dot = one district · colour = its cluster">
           <ShapBeeswarm height={440} />
         </ChartFrame>
       </div>
 
       {/* row 2: streamgraph + histogram */}
-      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
-        <ChartFrame title="Cause prevalence over time" caption="districts flagged per cause Â· 2018â€“2023 Â· stream-stacked">
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(0, 1fr)", gap: 18, marginBottom: 18 }}>
+        <ChartFrame title="Cause prevalence over time" caption="districts flagged per cause · 2018–2023 · stream-stacked">
           <CauseStream height={260} />
         </ChartFrame>
         <ChartFrame title="Reading-score distribution" caption="Grade-3 reading %, stacked by dominant cause"
@@ -81,8 +80,8 @@ function SignalLab({ onSelectDistrict }) {
       </div>
 
       {/* row 3: correlation + radar + trend */}
-      <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "minmax(0, 1fr) minmax(0, 1fr)", gap: 18 }}>
-        <ChartFrame title="Feature correlation" caption="Pearson r across all districts Â· blue âˆ’ / red +"
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 18 }}>
+        <ChartFrame title="Feature correlation" caption="Pearson r across all districts · blue − / red +"
           right={<span className="mono" style={{ fontSize: 10, color: "var(--ink-faint)" }}>n = {total}</span>}>
           <CorrHeatmap height={360} />
         </ChartFrame>
