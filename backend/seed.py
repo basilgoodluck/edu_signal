@@ -297,6 +297,71 @@ INTERVENTIONS = {
     ],
 }
 
+CLUSTER_METADATA = {
+    "seasonal_migration": {
+        "label": "Seasonal migration",
+        "short": "Migration",
+        "color": "#2563eb",
+        "tint": "#dbeafe",
+        "blurb": "Learning drops line up with harvest-season attendance loss and family mobility.",
+        "window": "Oct-Dec return bridge",
+        "signature": ["High NDVI variance", "Migration news signals", "Negative reading trend"],
+    },
+    "language_barrier": {
+        "label": "Language barrier",
+        "short": "Language",
+        "color": "#7c3aed",
+        "tint": "#ede9fe",
+        "blurb": "Home language mismatch is associated with weaker early reading outcomes.",
+        "window": "Grade 1-3 MT-MLE",
+        "signature": ["Large gender/language gap", "Mixed-language regions", "Forum complaints"],
+    },
+    "teacher_shortage": {
+        "label": "Teacher shortage",
+        "short": "Staffing",
+        "color": "#dc2626",
+        "tint": "#fee2e2",
+        "blurb": "High vacancy and PTR signals suggest constrained classroom attention.",
+        "window": "June staffing cycle",
+        "signature": ["High vacancy rate", "High PTR", "Open portal posts"],
+    },
+    "infrastructure": {
+        "label": "Infrastructure disruption",
+        "short": "Infra",
+        "color": "#0891b2",
+        "tint": "#cffafe",
+        "blurb": "Flood exposure and weak connectivity point to physical access and facility constraints.",
+        "window": "Pre-monsoon repair",
+        "signature": ["Flood days", "Low infra score", "Weak road connectivity"],
+    },
+    "pedagogical": {
+        "label": "Pedagogical gap",
+        "short": "Pedagogy",
+        "color": "#16a34a",
+        "tint": "#dcfce7",
+        "blurb": "Adequate inputs but weak foundational outcomes indicate classroom practice gaps.",
+        "window": "Daily FLN block",
+        "signature": ["Adequate infrastructure", "Low FLN conversion", "Low vacancy pressure"],
+    },
+    "noise": {
+        "label": "Unclassified signal",
+        "short": "Noise",
+        "color": "#64748b",
+        "tint": "#f1f5f9",
+        "blurb": "Districts without a stable dominant root-cause signature.",
+        "window": "Manual review",
+        "signature": ["Low confidence", "Mixed evidence", "Insufficient signal"],
+    },
+}
+
+SCAN_STEP_TEMPLATE = [
+    (0, "Search news signals", "news"),
+    (1, "Check vacancy portals", "vacancy_portal"),
+    (2, "Review NGO reports", "ngo_report"),
+    (3, "Scan community forums", "forum"),
+    (4, "Classify evidence", "classifier"),
+]
+
 # Demo evidence for Shravasti (cluster 0)
 SAMPLE_EVIDENCE = [
     {
@@ -360,9 +425,28 @@ async def seed():
 
     print("Truncating tables...")
     await conn.execute("""
-        TRUNCATE TABLE evidence, interventions, cluster_assignments, district_features, districts
+        TRUNCATE TABLE scan_steps, scan_runs, tracker_items, alerts, model_runs,
+        evidence, interventions, cluster_assignments, district_features,
+        cluster_metadata, districts
         RESTART IDENTITY CASCADE
     """)
+
+    print("Inserting cluster metadata...")
+    for cluster_id, meta in CLUSTER_METADATA.items():
+        await conn.execute(
+            """
+            INSERT INTO cluster_metadata (id, label, short, color, tint, blurb, window, signature)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            """,
+            cluster_id,
+            meta["label"],
+            meta["short"],
+            meta["color"],
+            meta["tint"],
+            meta["blurb"],
+            meta["window"],
+            meta["signature"],
+        )
 
     print("Inserting districts...")
     district_ids: dict[str, str] = {}  # name → id
@@ -436,8 +520,82 @@ async def seed():
             ev["reason"],
         )
 
+    print("Inserting demo scan run...")
+    scan_row = await conn.fetchrow(
+        """
+        INSERT INTO scan_runs (district_id, status, sources, completed_at)
+        VALUES ($1, 'complete', $2, NOW())
+        RETURNING id
+        """,
+        shravasti_id,
+        ["news", "vacancy_portal", "ngo_report", "forum"],
+    )
+    for step_index, label, source in SCAN_STEP_TEMPLATE:
+        await conn.execute(
+            """
+            INSERT INTO scan_steps (scan_id, step_index, label, source, status)
+            VALUES ($1, $2, $3, $4, 'done')
+            """,
+            str(scan_row["id"]),
+            step_index,
+            label,
+            source,
+        )
+
+    print("Inserting demo alerts and tracker items...")
+    demo_alerts = [
+        ("high", "Shravasti", "Attendance drop detected", "Harvest-season evidence volume is rising against an already negative reading trend.", "seasonal_migration"),
+        ("medium", "Sheohar", "Vacancy pressure elevated", "Teacher vacancy signals remain above peer-cluster norms.", "teacher_shortage"),
+        ("low", "Pakur", "Flood watch", "Infrastructure evidence suggests pre-monsoon repairs should be monitored.", "infrastructure"),
+    ]
+    for level, district_name, title, body, cluster_id in demo_alerts:
+        await conn.execute(
+            """
+            INSERT INTO alerts (level, district_id, title, body, cluster_id)
+            VALUES ($1, $2, $3, $4, $5)
+            """,
+            level,
+            district_ids[district_name],
+            title,
+            body,
+            cluster_id,
+        )
+
+    demo_tracker = [
+        ("Shravasti", "Seasonal bridge curriculum", date(2023, 10, 1), "active", 0.24, 0.29, 0.36, "Bridge groups running in return-migration blocks."),
+        ("Raichur", "Mother tongue multilingual education (MT-MLE)", date(2023, 6, 1), "monitoring", 0.22, 0.31, 0.38, "Teacher guides distributed; classroom observation cycle in progress."),
+        ("Tikamgarh", "FLN structured daily lesson plans", date(2022, 7, 1), "complete", 0.31, 0.40, 0.42, "Endline shows sustained gain, move to peer mentoring."),
+    ]
+    for district_name, intervention_type, started_at, status, baseline, latest, target, note in demo_tracker:
+        await conn.execute(
+            """
+            INSERT INTO tracker_items (district_id, intervention_type, started_at, status, baseline, latest, target, note)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            """,
+            district_ids[district_name],
+            intervention_type,
+            started_at,
+            status,
+            baseline,
+            latest,
+            target,
+            note,
+        )
+
+    print("Inserting demo model run...")
+    await conn.execute(
+        """
+        INSERT INTO model_runs (model_version, silhouette, projection_type, trained_at, projection_points)
+        VALUES ($1, $2, $3, NOW(), $4)
+        """,
+        "latest",
+        0.61,
+        "umap",
+        json.dumps([]),
+    )
+
     await conn.close()
-    print(f"\nSeed complete: {len(DISTRICTS)} districts, 5 clusters, {sum(len(v) for v in INTERVENTIONS.values())} interventions, {len(SAMPLE_EVIDENCE)} demo evidence cards.")
+    print(f"\nSeed complete: {len(DISTRICTS)} districts, 6 clusters, {sum(len(v) for v in INTERVENTIONS.values())} interventions, {len(SAMPLE_EVIDENCE)} demo evidence cards.")
     print("\nDistrict IDs:")
     for name, did in district_ids.items():
         entry = next(d for d in DISTRICTS if d[0] == name)
