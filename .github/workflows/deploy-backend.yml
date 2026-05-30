@@ -1,0 +1,66 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "scrapers/**"
+      - ".github/workflows/deploy-backend.yml"
+      - ".dockerignore"
+
+env:
+  API_IMAGE_NAME: edusignal-api
+  WORKER_IMAGE_NAME: edusignal-worker
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        run: az acr login --name "${{ secrets.ACR_NAME }}"
+
+      - name: Build and push API image
+        run: |
+          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${API_IMAGE_NAME}:${GITHUB_SHA}"
+          docker build -f backend/Dockerfile.api -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Build and push worker image
+        run: |
+          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/${WORKER_IMAGE_NAME}:${GITHUB_SHA}"
+          docker build -f backend/Dockerfile.worker -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Update API Container App
+        run: |
+          az containerapp update \
+            --name "${{ secrets.API_CONTAINER_APP_NAME }}" \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --image "${{ secrets.ACR_LOGIN_SERVER }}/${API_IMAGE_NAME}:${GITHUB_SHA}"
+
+      - name: Update worker Container App
+        run: |
+          az containerapp update \
+            --name "${{ secrets.WORKER_CONTAINER_APP_NAME }}" \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --image "${{ secrets.ACR_LOGIN_SERVER }}/${WORKER_IMAGE_NAME}:${GITHUB_SHA}"
+
+      - name: Print public API URL
+        run: |
+          FQDN="$(az containerapp show \
+            --name "${{ secrets.API_CONTAINER_APP_NAME }}" \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)"
+          echo "API public URL: https://${FQDN}"

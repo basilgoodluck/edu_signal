@@ -1,6 +1,38 @@
-version: "3.9"
-
 services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.api
+    env_file:
+      - backend/.env.example
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://edusignal:edusignal@db:5432/edusignal}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.worker
+    env_file:
+      - backend/.env.example
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://edusignal:edusignal@db:5432/edusignal}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   db:
     image: pgvector/pgvector:pg16
     environment:
