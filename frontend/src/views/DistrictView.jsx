@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getDistrict, getDistrictEvidence, getDistrictInterventions, getDistrictPeers, startDistrictScan } from "../api/districts.js";
 import { Button, Card, ClassificationBadge, CLS_STYLE, ClusterBadge, ClusterDot, ConfidencePill, FEATURE_LABELS, Icon, SectionLabel, ShapWaterfall, SourceTag, clusterMeta, signed } from "../components/UI.jsx";
 import { RadarChart, TrendChart, setChartData } from "../components/Charts.jsx";
-/* EduSignal â€” District detail (the demo hero) + reusable EvidenceClipping */
+/* EduSignal — District detail (the demo hero) + reusable EvidenceClipping */
 
 function EvidenceClipping({ ev, compact }) {
   const [open, setOpen] = useState(false);
@@ -21,10 +21,10 @@ function EvidenceClipping({ ev, compact }) {
       <div style={{ padding: compact ? "13px 15px" : "16px 17px" }}>
         <div className="mono" style={{ fontSize: 9, letterSpacing: "0.1em", color: "var(--ink-faint)", marginBottom: 7 }}>RAW SOURCE</div>
         <div style={{ display: "flex", gap: 9 }}>
-          <span style={{ fontSize: 24, lineHeight: 0.8, color: s.color, fontWeight: 700, flex: "none" }}>â€œ</span>
+          <span style={{ fontSize: 24, lineHeight: 0.8, color: s.color, fontWeight: 700, flex: "none" }}>“</span>
           <p style={{ margin: 0, fontSize: compact ? 14 : 15, lineHeight: 1.5, color: "var(--ink)", fontWeight: 500, letterSpacing: "-0.01em" }}>{ev.raw}</p>
         </div>
-        <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 9, marginLeft: 18 }}>â€” {ev.source}</div>
+        <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 9, marginLeft: 18 }}>— {ev.source}</div>
 
         {/* classification verdict */}
         <div style={{ marginTop: 14, paddingTop: 13, borderTop: "1px solid var(--border)", display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -141,11 +141,11 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: "var(--ink)", maxWidth: 620 }}>{m.blurb}</p>
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: m.color, fontWeight: 600, marginBottom: 8 }}>SIGNATURE Â· {m.window}</div>
+          <div className="mono" style={{ fontSize: 10.5, letterSpacing: "0.08em", color: m.color, fontWeight: 600, marginBottom: 8 }}>SIGNATURE · {m.window}</div>
           <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
             {m.signature.map((s) => (
               <li key={s} style={{ fontSize: 12.5, color: "var(--ink-2)", display: "flex", gap: 7 }}>
-                <span style={{ color: m.color }}>â€º</span>{s}</li>
+                <span style={{ color: m.color }}>›</span>{s}</li>
             ))}
           </ul>
         </div>
@@ -160,7 +160,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
               <span className="mono" style={{ fontSize: 10.5, color: "var(--ok)", fontWeight: 600 }}>{supporting} SUPPORTING</span>
               <span className="mono" style={{ fontSize: 10.5, color: "var(--bad)", fontWeight: 600 }}>{contra} CONTRADICTING</span>
             </span>
-          }>Evidence trail Â· raw source first</SectionLabel>
+          }>Evidence trail · raw source first</SectionLabel>
           {d.evidence.length === 0 && (
             <Card style={{ textAlign: "center", padding: "32px" }}>
               <div className="mono" style={{ fontSize: 12, color: "var(--ink-3)" }}>No cached evidence for this district yet.</div>
@@ -173,7 +173,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
         {/* right: model + trend + peers + interventions */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <Card>
-            <SectionLabel>SHAP â€” why the model decided</SectionLabel>
+            <SectionLabel>SHAP — why the model decided</SectionLabel>
             <ShapWaterfall shap={d.shap} cluster={d.cluster} />
             <div className="mono" style={{ fontSize: 10.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>Bars right of centre pushed {d.name} <span style={{ color: m.color }}>into</span> the {m.short.toLowerCase()} cluster; left bars pushed against it.</div>
           </Card>
@@ -184,14 +184,14 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
           </Card>
 
           <Card>
-            <SectionLabel right={<span className="mono" style={{ fontSize: 10.5, color: d.yoyReading < 0 ? "var(--bad)" : "var(--ok)", fontWeight: 600 }}>{signed(d.yoyReading)} YoY</span>}>Reading vs arithmetic Â· 2018â€“2023</SectionLabel>
+            <SectionLabel right={<span className="mono" style={{ fontSize: 10.5, color: d.yoyReading < 0 ? "var(--bad)" : "var(--ok)", fontWeight: 600 }}>{signed(d.yoyReading)} YoY</span>}>Reading vs arithmetic · 2018–2023</SectionLabel>
             <TrendChart district={d} height={210} />
           </Card>
 
           <Card>
-            <SectionLabel right={<button onClick={() => goTo("peers")} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600 }}>COMPARE â†’</button>}>Peer districts</SectionLabel>
+            <SectionLabel right={<button onClick={() => goTo("peers")} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600 }}>COMPARE →</button>}>Peer districts</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {d.peers.length ? d.peers.map((pid) => <PeerChip key={pid} id={pid} peerMap={peerMap} onSelect={onSelectDistrict} />) : <div className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>No clean peer group â€” district flagged as noise.</div>}
+              {d.peers.length ? d.peers.map((pid) => <PeerChip key={pid} id={pid} peerMap={peerMap} onSelect={onSelectDistrict} />) : <div className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>No clean peer group — district flagged as noise.</div>}
             </div>
           </Card>
 
@@ -202,7 +202,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
 
           {interventions.length > 0 && (
             <Card style={{ background: "var(--surface-2)" }}>
-              <SectionLabel right={<button onClick={() => goTo("peers")} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600 }}>ALL â†’</button>}>What worked in peers</SectionLabel>
+              <SectionLabel right={<button onClick={() => goTo("peers")} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600 }}>ALL →</button>}>What worked in peers</SectionLabel>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {interventions.slice(0, 2).map((iv) => (
                   <div key={iv.type} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r)" }}>
@@ -212,7 +212,7 @@ function DistrictDetail({ id, onSelectDistrict, goTo, onScan, onAskAI }) {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div className="mono tnum" style={{ fontSize: 15, fontWeight: 700, color: "var(--ok)" }}>{signed(iv.aserDelta)}</div>
-                      <div className="mono" style={{ fontSize: 9, color: "var(--ink-faint)" }}>ASER Î”</div>
+                      <div className="mono" style={{ fontSize: 9, color: "var(--ink-faint)" }}>ASER Δ</div>
                     </div>
                   </div>
                 ))}

@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import config from "../config.js";
 import { clusterMeta, ClusterBadge, signed } from "./UI.jsx";
-/* EduSignal â€” India choropleth map (real GeoJSON + fallback) */
+/* EduSignal — India choropleth map (real GeoJSON + fallback) */
 
 /* ---------- CDN URLs to try for India states GeoJSON ---------- */
 const GEO_URLS = config.map.geoJsonUrls;
 
-/* ---------- state name â†’ code lookup ---------- */
+/* ---------- state name → code lookup ---------- */
 const SC = {
   "jammu & kashmir":"JK","jammu and kashmir":"JK","himachal pradesh":"HP","punjab":"PB",
   "haryana":"HR","uttarakhand":"UK","uttaranchal":"UK","rajasthan":"RJ","gujarat":"GJ",
@@ -164,7 +164,7 @@ function DistrictMap({ districts, selected, onSelect, filterCluster }) {
           <circle key={`g${i}-${j}`} cx={24 + i * 46} cy={24 + j * 58} r="0.5" fill="var(--border)" opacity="0.25" />
         )))}
 
-        {/* state polygons â€” choropleth fill */}
+        {/* state polygons — choropleth fill */}
         {statePaths.map((state, idx) => {
           const info = stateInfo[state.id];
           const hasData = !!info;
@@ -241,7 +241,7 @@ function DistrictMap({ districts, selected, onSelect, filterCluster }) {
         {/* loading indicator */}
         {geoLoaded === null && (
           <text x={W / 2} y={H - 10} textAnchor="middle" fontSize="9" fill="var(--ink-faint)"
-            style={{ animation: "pulse 1.5s ease infinite" }}>Loading map boundariesâ€¦</text>
+            style={{ animation: "pulse 1.5s ease infinite" }}>Loading map boundaries…</text>
         )}
       </svg>
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getClusters } from "../api/clusters.js";
 import { Card, ClusterDot, signed } from "../components/UI.jsx";
 import { PageHeader } from "./OverviewView.jsx";
-/* EduSignal â€” Clusters explorer */
+/* EduSignal — Clusters explorer */
 
 function ClusterCard({ item, onSelectDistrict, goTo }) {
   const cid = item.cluster.id;
@@ -79,7 +79,7 @@ function ClustersView({ onSelectDistrict, goTo }) {
     <div className="fade-up" style={{ padding: "26px 30px 48px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="Cause Clusters"
-        sub="Five archetypes discovered by HDBSCAN. Districts that fit nothing are kept as noise â€” never force-fit."
+        sub="Five archetypes discovered by HDBSCAN. Districts that fit nothing are kept as noise — never force-fit."
       />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 18 }}>
         {clusters.map((item) => <ClusterCard key={item.cluster.id} item={item} onSelectDistrict={onSelectDistrict} goTo={goTo} />)}

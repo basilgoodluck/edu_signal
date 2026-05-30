@@ -3,7 +3,7 @@ import { getDistrictsMap, getLeaderboard, getOverview } from "../api/overview.js
 import { subscribeOverview } from "../api/streams.js";
 import { Button, Card, ClusterDot, Icon, SectionLabel, Sparkline, Stat, CLUSTER_ORDER, CLUSTERS, clusterMeta, signed } from "../components/UI.jsx";
 import { DistrictMap } from "../components/Map.jsx";
-/* EduSignal â€” Overview dashboard */
+/* EduSignal — Overview dashboard */
 
 function ClusterLegend({ active, onToggle, counts }) {
   return (
@@ -132,7 +132,7 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
     <div className="fade-up" style={{ padding: "26px 30px 40px", maxWidth: 1320, margin: "0 auto" }}>
       <PageHeader
         title="District Intelligence"
-        sub="Coloured by root cause, not by score â€” that's the whole point."
+        sub="Coloured by root cause, not by score — that's the whole point."
         actions={<Button variant="primary" icon="flask" onClick={() => goTo("evidence")}>Run live scan</Button>}
       />
 
@@ -153,9 +153,9 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>Cause map</div>
-                <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>choropleth by root cause Â· marker size âˆ severity</div>
+                <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>choropleth by root cause · marker size ∝ severity</div>
               </div>
-              <div className="mono" style={{ fontSize: 10.5, color: "var(--ink-faint)" }}>HDBSCAN Â· {total} districts</div>
+              <div className="mono" style={{ fontSize: 10.5, color: "var(--ink-faint)" }}>HDBSCAN · {total} districts</div>
             </div>
             <ClusterLegend active={filter} onToggle={setFilter} counts={counts} />
           </div>
@@ -167,7 +167,7 @@ function Overview({ onSelectDistrict, goTo, onScan, onAskAI, year }) {
         {/* right column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <Card>
-            <SectionLabel right={<button onClick={() => goTo("clusters")} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600 }}>EXPLORE â†’</button>}>Cause distribution</SectionLabel>
+            <SectionLabel right={<button onClick={() => goTo("clusters")} className="mono" style={{ fontSize: 10.5, color: "var(--brand)", fontWeight: 600 }}>EXPLORE →</button>}>Cause distribution</SectionLabel>
             <DistributionBar counts={counts} total={total} onSelect={setFilter} active={filter} />
           </Card>
 

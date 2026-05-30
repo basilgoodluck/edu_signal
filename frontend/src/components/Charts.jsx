@@ -28,7 +28,7 @@ function setChartData(districts = []) {
   const byId = Object.fromEntries(normalized.map((district) => [district.id, district]));
   DC = { DISTRICTS: normalized, CLUSTERS, CLUSTER_ORDER, FEATURE_LABELS, byId };
 }
-/* EduSignal â€” interactive chart engine (pure SVG/React, no deps) */
+/* EduSignal — interactive chart engine (pure SVG/React, no deps) */
 
 /* ============ math / scales ============ */
 function lin(d0, d1, r0, r1) {
@@ -51,7 +51,7 @@ function pearson(x, y) {
   return num / (Math.sqrt(dx * dy) || 1);
 }
 
-/* continuous diverging color (blue â†” neutral â†” red), t in [-1,1] */
+/* continuous diverging color (blue ↔ neutral ↔ red), t in [-1,1] */
 function divColor(t) {
   const a = Math.max(-1, Math.min(1, t));
   if (a >= 0) return `oklch(${0.92 - a * 0.32} ${0.04 + a * 0.14} 25)`;
@@ -236,7 +236,7 @@ function ShapBeeswarm({ height = 320 }) {
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: "block", overflow: "visible" }}>
         <line x1={zero} y1={PADT} x2={zero} y2={H - PADB} stroke="var(--border-strong)" strokeWidth="1" />
         <text x={zero} y={H - 8} textAnchor="middle" fontSize="9" fill="var(--ink-faint)" fontFamily="var(--mono)">0</text>
-        <text x={W - PADR} y={H - 8} textAnchor="end" fontSize="9" fill="var(--ink-faint)" fontFamily="var(--mono)">â†’ pushes INTO cluster</text>
+        <text x={W - PADR} y={H - 8} textAnchor="end" fontSize="9" fill="var(--ink-faint)" fontFamily="var(--mono)">→ pushes INTO cluster</text>
         {rows.map((r, ri) => {
           const cy = PADT + ri * rowH + rowH / 2;
           return (
@@ -594,7 +594,7 @@ function PeerNetwork({ onSelect, anchorId, height = 460 }) {
         return <Tip x={P[0] / W * ww} y={P[1] / H * height - 14} w={160}>
           <div style={{ fontWeight: 600, fontSize: 12.5 }}>{hoverD.name}</div>
           <div className="mono" style={{ fontSize: 10, opacity: 0.7, marginBottom: 4 }}>{clusterMeta(hoverD.cluster).label}</div>
-          <div className="mono" style={{ fontSize: 10.5 }}>{nb} transfer link{nb !== 1 ? "s" : ""} Â· read {hoverD.reading3}%</div>
+          <div className="mono" style={{ fontSize: 10.5 }}>{nb} transfer link{nb !== 1 ? "s" : ""} · read {hoverD.reading3}%</div>
         </Tip>;
       })()}
     </div>
